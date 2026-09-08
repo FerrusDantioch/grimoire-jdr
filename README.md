@@ -4,6 +4,13 @@ Application web progressive (PWA) pour le jeu de rôle solo et multi-joueurs.
 Installable sur mobile et ordinateur sans passer par les stores, fonctionne
 entièrement hors ligne, et ne transmet aucune donnée à un serveur.
 
+**→ [Ouvrir l'application](https://ferrusdantioch.github.io/grimoire-jdr/)**
+
+Ouvrez ce lien sur téléphone ou sur ordinateur, puis installez l'application
+depuis le bouton **Installer** de la barre du haut. Elle fonctionne ensuite sans
+réseau. Rien à installer par ailleurs : les sections ci-dessous ne concernent que
+le développement.
+
 ## Démarrer
 
 **Le plus simple : double-cliquer sur `Lancer Grimoire.cmd`.** Il installe les
@@ -49,10 +56,17 @@ barre du haut (ou l'icône d'installation dans la barre d'adresse de Chrome/Edge
 crée un raccourci qui ouvre Grimoire dans sa propre fenêtre, sans barre de
 navigateur. Il faut malgré tout que le serveur tourne.
 
-Pour vous en affranchir complètement, déposez le contenu de `dist/` sur n'importe
-quel hébergement statique (Netlify, GitHub Pages, Cloudflare Pages…) : en HTTPS,
-le service worker met tout en cache et l'application fonctionne ensuite sans
-réseau et sans rien lancer localement.
+C'est exactement ce que fait la version en ligne : **https://ferrusdantioch.github.io/grimoire-jdr/**.
+En HTTPS, le service worker met tout en cache et l'application fonctionne ensuite
+sans réseau et sans rien lancer localement — c'est la façon recommandée de s'en servir.
+
+### Déploiement
+
+Chaque `push` sur `main` déclenche `.github/workflows/deploy.yml` : installation,
+tests, build et publication sur GitHub Pages. Le build de déploiement reçoit la
+variable `GITHUB_PAGES` avec le nom du dépôt, ce qui bascule `base`, `start_url`
+et `scope` sur `/<dépôt>/` ; sans cette variable (donc en local), tout reste à la
+racine et `Lancer Grimoire.cmd` continue de fonctionner.
 
 ## Fonctionnalités
 
@@ -177,6 +191,7 @@ en compte. Deux thèmes, **grimoire** (sombre) et **parchemin** (clair).
   pieds de page numérotés.
 - Sauvegarde JSON : export, effacement complet, restauration — le PDF revient
   identique octet pour octet.
-- Service worker validé statiquement (manifeste de pré-cache complet, repli de
-  navigation). L'enregistrement en conditions réelles n'a pas pu être exercé :
-  le navigateur intégré utilisé pour les tests refuse les service workers.
+- Service worker vérifié en conditions réelles sur l'adresse publique : il
+  s'enregistre, s'active, contrôle la page, et met en cache les 14 fichiers du
+  pré-cache (worker pdf.js compris). Le repli de navigation résout bien
+  `index.html` depuis le cache.
