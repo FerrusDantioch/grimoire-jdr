@@ -1,0 +1,28 @@
+{
+  "name": "grimoire-jdr",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "PWA tout-en-un pour le jeu de role solo et multi-joueurs",
+  "scripts": {
+    "start": "vite build && vite preview --port 4173 --open",
+    "dev": "vite --open",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --open",
+    "serve": "vite preview --port 4173",
+    "test": "node scripts/test-core.mjs",
+    "icons": "node scripts/gen-icons.mjs"
+  },
+  "dependencies": {
+    "idb": "^8.0.0",
+    "jspdf": "^2.5.2",
+    "pdfjs-dist": "^4.6.82",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.2",
+    "vite": "^5.4.8",
+    "vite-plugin-pwa": "^0.20.5"
+  }
+}
