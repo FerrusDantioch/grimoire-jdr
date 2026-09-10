@@ -195,3 +195,19 @@ en compte. Deux thèmes, **grimoire** (sombre) et **parchemin** (clair).
   s'enregistre, s'active, contrôle la page, et met en cache les 14 fichiers du
   pré-cache (worker pdf.js compris). Le repli de navigation résout bien
   `index.html` depuis le cache.
+
+---
+
+## Licence
+
+Distribué sous licence **[MIT](LICENSE)**.
+
+Vous pouvez utiliser, modifier et redistribuer ce code librement, y compris à
+des fins commerciales, à la seule condition de conserver la mention de
+copyright et le texte de la licence. Le logiciel est fourni « en l'état »,
+sans aucune garantie.
+
+Les bibliothèques tierces utilisées par ce projet (voir `package.json`)
+restent soumises à leurs propres licences.
+
+© 2026 FerrusDantioch
