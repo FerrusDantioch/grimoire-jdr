@@ -1,0 +1,13 @@
+# Uniformise les fins de ligne entre Windows, macOS et Linux.
+# Sans ce reglage, Git signale sans arret que "les fins de ligne changent",
+# et les fichiers apparaissent modifies alors qu'ils ne le sont pas.
+* text=auto eol=lf
+
+# Exception : les scripts de commande Windows doivent conserver des fins de
+# ligne CRLF. cmd.exe peut mal interpreter un fichier .cmd n'ayant que des LF
+# (en particulier les etiquettes et les instructions "goto"), et le script
+# cesserait alors de fonctionner.
+*.cmd text eol=crlf
+
+# Fichiers binaires : Git ne doit surtout pas y toucher.
+*.png binary
