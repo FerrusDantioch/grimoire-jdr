@@ -6,7 +6,7 @@ const PlayerContext = createContext(null);
 
 export function usePlayer() {
   const ctx = useContext(PlayerContext);
-  if (!ctx) throw new Error('usePlayer doit etre utilise dans <PlayerProvider>');
+  if (!ctx) throw new Error('usePlayer doit être utilisé dans <PlayerProvider>');
   return ctx;
 }
 
@@ -102,7 +102,7 @@ export function PlayerProvider({ children }) {
     audio.load();
     if (playing) {
       audio.play().catch((err) => {
-        console.warn('[audio] lecture refusee', err);
+        console.warn('[audio] lecture refusée', err);
         setPlaying(false);
       });
     }
@@ -123,7 +123,10 @@ export function PlayerProvider({ children }) {
       setIndex((i) => {
         if (queue.length === 0) return -1;
         if (shuffle) {
-          if (queue.length === 1) return i;
+          if (queue.length === 1) {
+            if (auto) setPlaying(false);
+            return i;
+          }
           let next = i;
           while (next === i) next = Math.floor(Math.random() * queue.length);
           return next;
@@ -201,8 +204,8 @@ export function PlayerProvider({ children }) {
     const audio = audioRef.current;
     if (!audio || !current) return;
     audio.play().catch((err) => {
-      console.warn('[audio] lecture refusee', err);
-      toast('Le navigateur a refuse la lecture automatique.', 'err');
+      console.warn('[audio] lecture refusée', err);
+      toast('Le navigateur a refusé la lecture automatique.', 'err');
     });
   }, [current, toast]);
 
