@@ -22,7 +22,7 @@ function Row({ icon, title, description, children }) {
 }
 
 export default function SettingsView() {
-  const { theme, changeTheme, characters, journal, documents, tracks, playlists, reloadAll, toast } = useApp();
+  const { theme, changeTheme, characters, journal, documents, tracks, playlists, encounters, sounds, reloadAll, toast } = useApp();
   const { canInstall, installed, promptInstall } = useInstallPrompt();
   const online = useOnline();
 
@@ -42,10 +42,10 @@ export default function SettingsView() {
       const blob = new Blob([JSON.stringify(dump)], { type: 'application/json' });
       const stamp = new Date().toISOString().slice(0, 10);
       downloadBlob(blob, `grimoire-sauvegarde-${stamp}.json`);
-      toast('Sauvegarde telechargee.', 'ok');
+      toast('Sauvegarde téléchargée.', 'ok');
     } catch (err) {
       console.error(err);
-      toast('La sauvegarde a echoue.', 'err');
+      toast('La sauvegarde a échoué.', 'err');
     } finally {
       setBusy('');
     }
@@ -57,11 +57,16 @@ export default function SettingsView() {
     setBusy('import');
     try {
       const dump = JSON.parse(await file.text());
-      const counts = await db.importBackup(dump, { merge: true });
+      const { counts, skipped } = await db.importBackup(dump, { merge: true });
       await reloadAll();
       await refreshUsage();
       const total = Object.values(counts).reduce((a, b) => a + b, 0);
-      toast(`${total} element(s) restaure(s).`, 'ok');
+      toast(
+        skipped
+          ? `${total} élément(s) restauré(s), ${skipped} ligne(s) invalide(s) ignorée(s).`
+          : `${total} élément(s) restauré(s).`,
+        skipped ? 'err' : 'ok'
+      );
     } catch (err) {
       console.error(err);
       toast(err.message || 'Fichier de sauvegarde invalide.', 'err');
@@ -72,21 +77,23 @@ export default function SettingsView() {
 
   const counts = [
     { label: 'Personnages', value: characters.length },
-    { label: 'Seances', value: journal.length },
+    { label: 'Séances', value: journal.length },
     { label: 'Documents', value: documents.length },
     { label: 'Pistes', value: tracks.length },
     { label: 'Playlists', value: playlists.length },
+    { label: 'Combats', value: encounters.length },
+    { label: 'Ambiances', value: sounds.length },
   ];
 
   return (
     <>
       <div className="page-head">
-        <h2>Reglages</h2>
+        <h2>Réglages</h2>
       </div>
 
       <section className="card setting-group">
         <h3 className="setting-group__title">Apparence</h3>
-        <Row icon={theme === 'grimoire' ? 'moon' : 'sun'} title="Theme" description="Sombre pour jouer le soir, clair pour le grand jour.">
+        <Row icon={theme === 'grimoire' ? 'moon' : 'sun'} title="Thème" description="Sombre pour jouer le soir, clair pour le grand jour.">
           <div className="segmented segmented--inline">
             <button type="button" className={theme === 'grimoire' ? 'is-on' : ''} onClick={() => changeTheme('grimoire')}>
               Grimoire
@@ -105,14 +112,14 @@ export default function SettingsView() {
           title="Installer sur l’appareil"
           description={
             installed
-              ? 'Deja installee — elle s’ouvre comme une application.'
+              ? 'Déjà installée — elle s’ouvre comme une application.'
               : canInstall
-                ? 'Ajoute une icone et un lancement plein ecran.'
-                : 'Utilisez « Ajouter a l’ecran d’accueil » dans le menu du navigateur.'
+                ? 'Ajoutez une icône et un lancement plein écran.'
+                : 'Utilisez « Ajouter à l’écran d’accueil » dans le menu du navigateur.'
           }
         >
           <button type="button" className="btn btn--sm btn--primary" onClick={promptInstall} disabled={!canInstall || installed}>
-            {installed ? 'Installee' : 'Installer'}
+            {installed ? 'Installée' : 'Installer'}
           </button>
         </Row>
         <Row
@@ -120,7 +127,7 @@ export default function SettingsView() {
           title="Fonctionnement hors ligne"
           description={
             online
-              ? 'Connecte. Les fichiers de l’application sont en cache pour les coupures reseau.'
+              ? 'Connecté. Les fichiers de l’application sont en cache pour les coupures réseau.'
               : 'Hors ligne — toutes les fonctions restent disponibles.'
           }
         >
@@ -129,7 +136,7 @@ export default function SettingsView() {
       </section>
 
       <section className="card setting-group">
-        <h3 className="setting-group__title">Donnees</h3>
+        <h3 className="setting-group__title">Données</h3>
 
         <div className="stats-grid">
           {counts.map((c) => (
@@ -146,7 +153,7 @@ export default function SettingsView() {
               <span style={{ width: `${Math.min(100, Math.max(1, usage.ratio * 100))}%` }} />
             </div>
             <span className="small muted">
-              {formatBytes(usage.usage)} utilises sur {formatBytes(usage.quota)} disponibles
+              {formatBytes(usage.usage)} utilisés sur {formatBytes(usage.quota)} disponibles
             </span>
           </div>
         )}
@@ -158,14 +165,14 @@ export default function SettingsView() {
           </button>
         </Row>
 
-        <Row icon="upload" title="Restaurer" description="Fusionne le contenu du fichier avec les donnees actuelles.">
+        <Row icon="upload" title="Restaurer" description="Fusionne le contenu du fichier avec les données actuelles.">
           <button type="button" className="btn btn--sm" onClick={importBackup} disabled={busy === 'import'}>
             <Icon name="upload" />
             {busy === 'import' ? 'En cours…' : 'Importer'}
           </button>
         </Row>
 
-        <Row icon="trash" title="Tout effacer" description="Supprime definitivement l’ensemble des donnees locales.">
+        <Row icon="trash" title="Tout effacer" description="Supprime définitivement l’ensemble des données locales.">
           <button type="button" className="btn btn--sm btn--danger" onClick={() => setConfirmWipe(true)}>
             Effacer
           </button>
@@ -173,24 +180,28 @@ export default function SettingsView() {
       </section>
 
       <section className="card setting-group">
-        <h3 className="setting-group__title">A propos</h3>
+        <h3 className="setting-group__title">À propos</h3>
         <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
-          <strong>Grimoire</strong> — compagnon de jeu de role fonctionnant entierement sur votre appareil.
-          Aucune donnee n’est envoyee sur un serveur : fiches, journal, documents et musiques restent
-          dans le stockage local du navigateur. Pensez a exporter une sauvegarde de temps en temps.
+          <strong>Grimoire</strong> — compagnon de jeu de rôle fonctionnant entièrement sur votre appareil.
+          Aucune donnée n’est envoyée sur un serveur : fiches, journal, documents et musiques restent
+          dans le stockage local du navigateur. Pensez à exporter une sauvegarde de temps en temps.
+        </p>
+        <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
+          Application développée par <strong>Ferrus Dantioch</strong> avec l’aide de l’intelligence
+          artificielle. Distribuée sous licence MIT.
         </p>
       </section>
 
       <ConfirmDialog
         open={confirmWipe}
-        title="Effacer toutes les donnees ?"
-        message="Personnages, journal, documents, musiques et historique de des seront definitivement supprimes. Exportez une sauvegarde avant si besoin."
+        title="Effacer toutes les données ?"
+        message="Personnages, journal, documents, musiques et historique de dés seront définitivement supprimés. Exportez une sauvegarde avant si besoin."
         confirmLabel="Tout effacer"
         onConfirm={async () => {
           await db.wipeAll();
           await reloadAll();
           await refreshUsage();
-          toast('Toutes les donnees ont ete effacees.');
+          toast('Toutes les données ont été effacées.');
         }}
         onClose={() => setConfirmWipe(false)}
       />
