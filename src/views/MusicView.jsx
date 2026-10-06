@@ -4,6 +4,7 @@ import { usePlayer } from '../state/PlayerContext.jsx';
 import { formatBytes, formatDuration, pickFiles, uid } from '../lib/utils.js';
 import Icon from '../components/Icon.jsx';
 import Modal, { ConfirmDialog } from '../components/Modal.jsx';
+import Soundboard from '../components/Soundboard.jsx';
 import './music.css';
 
 const AUDIO_ACCEPT = 'audio/*,.mp3,.ogg,.wav,.m4a,.flac,.opus,.aac';
@@ -41,8 +42,8 @@ function TrackRow({ track, isCurrent, playing, onPlay, onAdd, onDelete }) {
 }
 
 export default function MusicView() {
-  const { tracks, playlists, addTracks, deleteTrack, savePlaylist, deletePlaylist, toast } = useApp();
-  const { current, playing, playQueue, togglePlay, next, prev, volume, setVolume, position, duration, seek, shuffle, toggleShuffle, repeat, cycleRepeat, queueLabel } = usePlayer();
+   const { tracks, playlists, sounds, addTracks, deleteTrack, savePlaylist, deletePlaylist, toast } = useApp();
+ const { current, playing, playQueue, togglePlay, next, prev, volume, setVolume, position, duration, seek, shuffle, toggleShuffle, repeat, cycleRepeat, queueLabel } = usePlayer();
 
   const [tab, setTab] = useState('tracks');
   const [importing, setImporting] = useState(false);
@@ -203,10 +204,13 @@ export default function MusicView() {
       <div className="page-head">
         <h2>Musique</h2>
         <span className="spacer" />
-        <button type="button" className="btn btn--primary btn--sm" onClick={importAudio} disabled={importing}>
-          <Icon name="upload" />
-          {importing ? 'Import…' : 'Importer'}
-        </button>
+                {tab !== 'ambiances' && (
+          <button type="button" className="btn btn--primary btn--sm" onClick={importAudio} disabled={importing}>
+            <Icon name="upload" />
+            {importing ? 'Import…' : 'Importer'}
+          </button>
+        )}
+
       </div>
 
       <div className="segmented" role="tablist">
@@ -226,9 +230,21 @@ export default function MusicView() {
           className={tab === 'playlists' ? 'is-on' : ''}
           onClick={() => setTab('playlists')}
         >
-          Playlists ({playlists.length})
+                    Playlists ({playlists.length})
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'ambiances'}
+          className={tab === 'ambiances' ? 'is-on' : ''}
+          onClick={() => setTab('ambiances')}
+        >
+          Ambiances ({sounds.length})
         </button>
       </div>
+
+      {tab === 'ambiances' && <Soundboard />}
+
 
       {tab === 'tracks' ? (
         tracks.length === 0 ? (
@@ -272,10 +288,11 @@ export default function MusicView() {
               ))}
             </ul>
           </>
-        )
-      ) : (
+                )
+      ) : tab === 'playlists' ? (
         <>
           <button type="button" className="btn btn--block" onClick={() => setCreating(true)} style={{ marginBottom: 12 }}>
+
             <Icon name="plus" />
             Nouvelle playlist
           </button>
@@ -310,10 +327,10 @@ export default function MusicView() {
                   </button>
                 </div>
               ))}
-            </div>
+                        </div>
           )}
         </>
-      )}
+      ) : null}
 
       {/* -------- lecteur complet -------- */}
       {current && (
