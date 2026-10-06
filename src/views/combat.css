@@ -1,0 +1,273 @@
+/* =========================================================
+   Tracker de combat
+   ========================================================= */
+
+.combat {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.combat__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.combat__name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.combat__turnbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+}
+
+.combat__turnbar .btn--primary {
+  flex: 1;
+  justify-content: center;
+}
+
+.combat__round {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  min-width: 52px;
+}
+
+.combat__round strong {
+  font-size: 1.3rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.combat__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.combatant {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.combatant--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 6px 18px -8px var(--accent);
+}
+
+.combatant--dead {
+  opacity: 0.5;
+}
+
+.combatant--dead .combatant__name {
+  text-decoration: line-through;
+}
+
+.combatant__order {
+  width: 22px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8px;
+  color: var(--txt-3);
+  font-weight: 600;
+  flex: none;
+}
+
+.combatant--active .combatant__order {
+  color: var(--accent);
+}
+
+.combatant__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.combatant__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.combatant__name {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  color: var(--txt);
+  font: inherit;
+  font-weight: 600;
+  padding: 4px 2px;
+}
+
+.combatant__name:focus-visible {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+
+.combatant__init {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 2px 8px;
+}
+
+.combatant__init input {
+  width: 44px;
+  background: transparent;
+  border: none;
+  color: var(--txt);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.combatant__init input:focus-visible {
+  outline: none;
+}
+
+.combatant__hp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.combatant__hpbar {
+  position: relative;
+  flex: 1;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.combatant__hpbar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--ok), color-mix(in srgb, var(--ok) 70%, white));
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.combatant__hpbar b {
+  position: relative;
+  display: block;
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 20px;
+  color: var(--txt);
+  font-variant-numeric: tabular-nums;
+}
+
+.combatant__hp5 {
+  min-width: 40px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.combatant__note {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--line);
+  color: var(--txt-3);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 3px 2px;
+}
+
+.combatant__note:focus-visible {
+  outline: none;
+  border-bottom-color: var(--accent);
+  color: var(--txt);
+}
+
+/* -------- ajout -------- */
+
+.combat__add .label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.combat__addrow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.combat__addrow .btn {
+  justify-content: center;
+}
+
+@media (min-width: 620px) {
+  .combat__addrow {
+    grid-template-columns: 1fr 110px 110px auto;
+  }
+}
+
+/* -------- liste des rencontres -------- */
+
+.combat-grid {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 720px) {
+  .combat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.combat-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 0;
+}
+
+.combat-card__open {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: var(--r-md);
+}
+
+.combat-card__open:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
