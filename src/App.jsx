@@ -5,6 +5,7 @@ import { usePlayer } from './state/PlayerContext.jsx';
 import { useInstallPrompt } from './lib/usePwa.js';
 import CharactersView from './views/CharactersView.jsx';
 import JournalView from './views/JournalView.jsx';
+import CombatView from './views/CombatView.jsx';
 import PdfView from './views/PdfView.jsx';
 import MusicView from './views/MusicView.jsx';
 import SettingsView from './views/SettingsView.jsx';
@@ -16,9 +17,10 @@ import Icon from './components/Icon.jsx';
 const TABS = [
   { id: 'characters', label: 'Fiches', icon: 'users' },
   { id: 'journal', label: 'Journal', icon: 'book' },
+  { id: 'combat', label: 'Combat', icon: 'swords' },
   { id: 'documents', label: 'Documents', icon: 'file' },
   { id: 'music', label: 'Musique', icon: 'music' },
-  { id: 'settings', label: 'Reglages', icon: 'settings' },
+  { id: 'settings', label: 'Réglages', icon: 'settings' },
 ];
 
 export default function App() {
@@ -30,6 +32,7 @@ export default function App() {
   const [tab, setTab] = useState('characters');
   const [openCharacter, setOpenCharacter] = useState(null);
   const [openEntry, setOpenEntry] = useState(null);
+  const [openCombat, setOpenCombat] = useState(null);
   const [openDoc, setOpenDoc] = useState(null);
 
   /* Raccourcis du manifeste : ?tab=journal, ?roll=1d20 */
@@ -83,7 +86,7 @@ export default function App() {
               setTab('characters');
               setOpenCharacter(activeCharacter.id);
             }}
-            title="Fiche liee au lanceur de des"
+            title="Fiche liée au lanceur de dés"
           >
             <Icon name="users" size={13} />
             {activeCharacter.name}
@@ -103,7 +106,7 @@ export default function App() {
           type="button"
           className="btn btn--ghost btn--icon"
           onClick={() => changeTheme(theme === 'grimoire' ? 'parchemin' : 'grimoire')}
-          aria-label={theme === 'grimoire' ? 'Passer au theme clair' : 'Passer au theme sombre'}
+          aria-label={theme === 'grimoire' ? 'Passer au thème clair' : 'Passer au thème sombre'}
         >
           <Icon name={theme === 'grimoire' ? 'sun' : 'moon'} />
         </button>
@@ -124,6 +127,7 @@ export default function App() {
           <div className={documentOpen ? '' : 'content__inner'}>
             {tab === 'characters' && <CharactersView openId={openCharacter} setOpenId={setOpenCharacter} />}
             {tab === 'journal' && <JournalView openId={openEntry} setOpenId={setOpenEntry} />}
+            {tab === 'combat' && <CombatView openId={openCombat} setOpenId={setOpenCombat} />}
             {tab === 'documents' && <PdfView openId={openDoc} setOpenId={setOpenDoc} />}
             {tab === 'music' && <MusicView />}
             {tab === 'settings' && <SettingsView />}
