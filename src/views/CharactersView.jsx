@@ -26,7 +26,7 @@ export default function CharactersView({ openId, setOpenId }) {
     await saveCharacter(character);
     setNewOpen(false);
     setOpenId(character.id);
-    toast('Fiche creee.', 'ok');
+    toast('Fiche créée.', 'ok');
   };
 
   if (open) {
@@ -44,7 +44,7 @@ export default function CharactersView({ openId, setOpenId }) {
         </button>
       </div>
 
-      {characters.length > 3 && (
+      {characters.length > 0 && (
         <div className="field">
           <input
             className="input"
@@ -60,16 +60,16 @@ export default function CharactersView({ openId, setOpenId }) {
       {filtered.length === 0 ? (
         <div className="empty">
           <span className="empty__icon">🎲</span>
-          <h3>{characters.length ? 'Aucun resultat' : 'Aucun personnage'}</h3>
+          <h3>{characters.length ? 'Aucun résultat' : 'Aucun personnage'}</h3>
           <p className="small">
             {characters.length
               ? 'Essayez un autre terme de recherche.'
-              : 'Creez une fiche : chaque categorie et chaque champ porte le nom que vous choisissez.'}
+              : 'Créez une fiche : chaque catégorie et chaque champ porte le nom que vous choisissez.'}
           </p>
           {!characters.length && (
             <button type="button" className="btn btn--primary" onClick={() => setNewOpen(true)} style={{ marginTop: 12 }}>
               <Icon name="plus" />
-              Creer une fiche
+              Créer une fiche
             </button>
           )}
         </div>
@@ -108,7 +108,7 @@ export default function CharactersView({ openId, setOpenId }) {
 
       <Modal open={newOpen} onClose={() => setNewOpen(false)} title="Nouvelle fiche">
         <p className="small muted" style={{ marginTop: 0 }}>
-          Un modele sert de point de depart : tout reste renommable, deplacable et supprimable ensuite.
+          Un modèle sert de point de depart : tout reste renommable, deplacable et supprimable ensuite.
         </p>
         <div className="template-list">
           {TEMPLATES.map((t) => (
