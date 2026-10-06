@@ -243,8 +243,24 @@
 .fieldrow__main > .btn { grid-area: settings; }
 .fieldrow__main > .btn.is-on { color: var(--accent); }
 
-.fieldrow__mod {
+.fieldrow__modwrap {
   grid-area: mod;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fieldrow__roll {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-radius: 999px;
+}
+
+.fieldrow__roll:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.fieldrow__mod {
   font-weight: 800;
   font-size: 13px;
   color: var(--accent);
