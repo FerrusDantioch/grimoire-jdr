@@ -1,7 +1,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'grimoire-jdr';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 /** Tous les magasins a cle primaire `id`, sauf `settings` (cle/valeur). */
 export const STORES = {
@@ -11,6 +11,8 @@ export const STORES = {
   tracks: 'tracks',
   playlists: 'playlists',
   rolls: 'rolls',
+  encounters: 'encounters',
+  sounds: 'sounds',
 };
 
 const KEYED = Object.values(STORES);
@@ -33,7 +35,7 @@ export function getDB() {
         }
       },
       blocked() {
-        console.warn('[db] mise a jour bloquee par un autre onglet');
+        console.warn('[db] mise à jour bloquée par un autre onglet');
       },
     });
   }
@@ -156,12 +158,19 @@ export async function importBackup(dump, { merge = true } = {}) {
     throw new Error('Fichier de sauvegarde non reconnu.');
   }
   const counts = {};
+  let skipped = 0;
   for (const store of KEYED) {
     const rows = dump.data?.[store];
     if (!Array.isArray(rows)) continue;
     if (!merge) await clearStore(store);
     const restored = [];
     for (const row of rows) {
+      // Ligne invalide (pas d'identifiant exploitable) : on l'ignore plutot
+      // que de casser tout le retablissement.
+      if (!row || typeof row.id !== 'string' || !row.id) {
+        skipped += 1;
+        continue;
+      }
       if (row.blobEncoded && typeof row.blob === 'string') {
         restored.push({ ...row, blob: await dataURLToBlob(row.blob), blobEncoded: undefined });
       } else if (row.blobOmitted) {
@@ -173,7 +182,7 @@ export async function importBackup(dump, { merge = true } = {}) {
     if (restored.length) await putMany(store, restored);
     counts[store] = restored.length;
   }
-  return counts;
+  return { counts, skipped };
 }
 
 export async function wipeAll() {
