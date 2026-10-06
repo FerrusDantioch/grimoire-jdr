@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
 import { useDice } from '../state/DiceContext.jsx';
 import { FIELD_TYPES, field as makeField, section as makeSection } from '../lib/templates.js';
-import { MOD_MODES, statToModifier } from '../lib/dice.js';
+import { MOD_MODES, formatBreakdown, statToModifier } from '../lib/dice.js';
 import { exportCharacter } from '../lib/exporters.js';
 import { debounce, formatRelative, move } from '../lib/utils.js';
 import Icon from './Icon.jsx';
@@ -11,7 +11,7 @@ import { ConfirmDialog } from './Modal.jsx';
 import './characters.css';
 
 /** Ligne d'edition d'un champ : libelle, valeur et reglages replies. */
-function FieldRow({ field, onChange, onRemove, onMove, isFirst, isLast }) {
+function FieldRow({ field, onChange, onRemove, onMove, onRoll, isFirst, isLast }) {
   const [open, setOpen] = useState(false);
   const modifier = field.type === 'number' && field.useAsModifier ? statToModifier(field.value, field.modMode) : null;
 
@@ -71,8 +71,19 @@ function FieldRow({ field, onChange, onRemove, onMove, isFirst, isLast }) {
         )}
 
         {modifier !== null && (
-          <span className="fieldrow__mod" title="Modificateur applicable aux jets de des">
-            {modifier >= 0 ? `+${modifier}` : modifier}
+          <span className="fieldrow__modwrap">
+            <span className="fieldrow__mod" title="Modificateur applicable aux jets de dés">
+              {modifier >= 0 ? `+${modifier}` : modifier}
+            </span>
+            <button
+              type="button"
+              className="btn btn--sm btn--icon fieldrow__roll"
+              onClick={onRoll}
+              aria-label={`Lancer 1d20 ${modifier >= 0 ? '+' : ''}${modifier} (${field.label || 'champ'})`}
+              title={`Lancer 1d20 ${modifier >= 0 ? '+' : ''}${modifier} (${field.label || 'champ'})`}
+            >
+              <Icon name="dice" size={15} />
+            </button>
           </span>
         )}
 
@@ -81,7 +92,7 @@ function FieldRow({ field, onChange, onRemove, onMove, isFirst, isLast }) {
           className={`btn btn--ghost btn--icon btn--sm${open ? ' is-on' : ''}`}
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          aria-label={`Reglages du champ ${field.label}`}
+          aria-label={`Réglages du champ ${field.label}`}
         >
           <Icon name="settings" />
         </button>
@@ -139,7 +150,7 @@ function FieldRow({ field, onChange, onRemove, onMove, isFirst, isLast }) {
                 onChange={(e) => onChange({ useAsModifier: e.target.checked })}
               />
               <span>
-                Utilisable comme modificateur de des
+                Utilisable comme modificateur de dés
                 <em className="small muted">
                   {' '}
                   — {MOD_MODES.find((m) => m.id === (field.modMode || 'raw'))?.hint}
@@ -186,12 +197,13 @@ function FieldRow({ field, onChange, onRemove, onMove, isFirst, isLast }) {
 
 export default function CharacterEditor({ character, onBack }) {
   const { saveCharacter, deleteCharacter, activateCharacter, activeCharacterId, toast } = useApp();
-  const { setPanelOpen } = useDice();
+  const { roll, setPanelOpen } = useDice();
 
   const [draft, setDraft] = useState(character);
   const [collapsed, setCollapsed] = useState({});
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [confirmSection, setConfirmSection] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [savedAt, setSavedAt] = useState(character.updatedAt);
   const draftRef = useRef(draft);
@@ -239,7 +251,7 @@ export default function CharacterEditor({ character, onBack }) {
 
   /* ---------- categories ---------- */
   const addSection = () =>
-    update((c) => ({ ...c, sections: [...c.sections, makeSection('Nouvelle categorie', [])] }));
+    update((c) => ({ ...c, sections: [...c.sections, makeSection('Nouvelle catégorie', [])] }));
 
   const patchSection = (sectionId, patch) =>
     update((c) => ({
@@ -249,6 +261,23 @@ export default function CharacterEditor({ character, onBack }) {
 
   const removeSection = (sectionId) =>
     update((c) => ({ ...c, sections: c.sections.filter((s) => s.id !== sectionId) }));
+
+  /* Jet direct depuis la fiche : 1d20 + modificateur du champ, detail en
+     notification. Le personnage est passe explicitement pour l'historique. */
+  const rollField = useCallback(
+    (field) => {
+      const label = field.label || 'champ';
+      const value = statToModifier(field.value, field.modMode);
+      const result = roll('1d20', {
+        ignoreModifiers: true,
+        extraModifiers: [{ label, value, source: 'character' }],
+        character: { id: draft.id, name: draft.name || 'Sans nom' },
+        label,
+      });
+      if (result) toast(formatBreakdown(result), 'ok', 4200);
+    },
+    [roll, toast, draft.id, draft.name]
+  );
 
   const moveSection = (index, delta) =>
     update((c) => ({ ...c, sections: move(c.sections, index, index + delta) }));
@@ -302,11 +331,11 @@ export default function CharacterEditor({ character, onBack }) {
     try {
       persist.flush(draftRef.current);
       await exportCharacter(draftRef.current, format);
-      toast(`Fiche exportee en ${format.toUpperCase()}.`, 'ok');
+      toast(`Fiche exportée en ${format.toUpperCase()}.`, 'ok');
       setExportOpen(false);
     } catch (err) {
       console.error(err);
-      toast("L'export a echoue.", 'err');
+      toast("L'export a échoué.", 'err');
     } finally {
       setExporting(false);
     }
@@ -315,12 +344,12 @@ export default function CharacterEditor({ character, onBack }) {
   return (
     <div className="editor">
       <div className="editor__bar">
-        <button type="button" className="btn btn--ghost btn--icon" onClick={onBack} aria-label="Retour a la liste">
+        <button type="button" className="btn btn--ghost btn--icon" onClick={onBack} aria-label="Retour à la liste">
           <Icon name="arrowLeft" />
         </button>
         <div className="editor__bar-meta">
           <span className="small muted">
-            {savedAt ? `Enregistre ${formatRelative(savedAt)}` : 'Non enregistre'}
+            {savedAt ? `Enregistré ${formatRelative(savedAt)}` : 'Non enregistré'}
           </span>
         </div>
         <button type="button" className="btn btn--sm" onClick={() => setExportOpen(true)}>
@@ -350,21 +379,21 @@ export default function CharacterEditor({ character, onBack }) {
             className="input"
             value={draft.system || ''}
             onChange={(e) => update({ system: e.target.value })}
-            placeholder="Systeme de jeu"
-            aria-label="Systeme de jeu"
+            placeholder="Système de jeu"
+            aria-label="Système de jeu"
           />
           <input
             className="input"
             value={draft.role || ''}
             onChange={(e) => update({ role: e.target.value })}
-            placeholder="Classe, role, archetype…"
-            aria-label="Role"
+            placeholder="Classe, rôle, archétype…"
+            aria-label="Rôle"
           />
         </div>
         <button type="button" className="editor__dicehint" onClick={() => setPanelOpen(true)}>
           <Icon name="dice" size={16} />
           {modifierCount > 0
-            ? `${modifierCount} caracteristique${modifierCount > 1 ? 's' : ''} disponible${modifierCount > 1 ? 's' : ''} comme modificateur — ouvrir les des`
+            ? `${modifierCount} caractéristique${modifierCount > 1 ? 's' : ''} disponible${modifierCount > 1 ? 's' : ''} comme modificateur — ouvrir les dés`
             : 'Aucun modificateur : activez l’option sur un champ numerique'}
         </button>
       </div>
@@ -379,7 +408,7 @@ export default function CharacterEditor({ character, onBack }) {
                 className="btn btn--ghost btn--icon btn--sm"
                 onClick={() => setCollapsed((c) => ({ ...c, [section.id]: !c[section.id] }))}
                 aria-expanded={!isCollapsed}
-                aria-label={isCollapsed ? 'Deplier la categorie' : 'Replier la categorie'}
+                aria-label={isCollapsed ? 'Deplier la catégorie' : 'Replier la catégorie'}
               >
                 <Icon name={isCollapsed ? 'chevronRight' : 'chevronDown'} />
               </button>
@@ -387,8 +416,8 @@ export default function CharacterEditor({ character, onBack }) {
                 className="sectioncard__name"
                 value={section.name}
                 onChange={(e) => patchSection(section.id, { name: e.target.value })}
-                placeholder="Nom de la categorie"
-                aria-label="Nom de la categorie"
+                placeholder="Nom de la catégorie"
+                aria-label="Nom de la catégorie"
               />
               <span className="small muted sectioncard__count">{section.fields.length}</span>
               <button
@@ -396,7 +425,7 @@ export default function CharacterEditor({ character, onBack }) {
                 className="btn btn--ghost btn--icon btn--sm"
                 onClick={() => moveSection(sIndex, -1)}
                 disabled={sIndex === 0}
-                aria-label="Monter la categorie"
+                aria-label="Monter la catégorie"
               >
                 <Icon name="chevronUp" />
               </button>
@@ -405,15 +434,15 @@ export default function CharacterEditor({ character, onBack }) {
                 className="btn btn--ghost btn--icon btn--sm"
                 onClick={() => moveSection(sIndex, 1)}
                 disabled={sIndex === draft.sections.length - 1}
-                aria-label="Descendre la categorie"
+                aria-label="Descendre la catégorie"
               >
                 <Icon name="chevronDown" />
               </button>
               <button
                 type="button"
                 className="btn btn--ghost btn--icon btn--sm"
-                onClick={() => removeSection(section.id)}
-                aria-label="Supprimer la categorie"
+                onClick={() => setConfirmSection(section)}
+                aria-label="Supprimer la catégorie"
               >
                 <Icon name="trash" />
               </button>
@@ -430,6 +459,7 @@ export default function CharacterEditor({ character, onBack }) {
                     onChange={(patch) => patchField(section.id, f.id, patch)}
                     onRemove={() => removeField(section.id, f.id)}
                     onMove={(delta) => moveField(section.id, fIndex, delta)}
+                    onRoll={() => rollField(f)}
                   />
                 ))}
                 <button type="button" className="btn btn--sm btn--block" onClick={() => addField(section.id)}>
@@ -444,7 +474,7 @@ export default function CharacterEditor({ character, onBack }) {
 
       <button type="button" className="btn btn--block" onClick={addSection}>
         <Icon name="plus" />
-        Ajouter une categorie
+        Ajouter une catégorie
       </button>
 
       <section className="card card--pad" style={{ marginTop: 14 }}>
@@ -470,15 +500,32 @@ export default function CharacterEditor({ character, onBack }) {
       <ConfirmDialog
         open={confirmDelete}
         title="Supprimer ce personnage ?"
-        message={`« ${draft.name} » et toutes ses categories seront definitivement effaces. Cette action est irreversible.`}
+        message={`« ${draft.name} » et toutes ses catégories seront définitivement effacés. Cette action est irréversible.`}
         confirmLabel="Supprimer"
         onConfirm={async () => {
           persist.cancel();
           await deleteCharacter(draft.id);
-          toast('Personnage supprime.');
+          toast('Personnage supprimé.');
           onBack();
         }}
         onClose={() => setConfirmDelete(false)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmSection)}
+        title="Supprimer cette catégorie ?"
+        message={
+          confirmSection
+            ? `« ${confirmSection.name || 'Sans nom'} » et ses ${confirmSection.fields.length} champ(s) seront effacés.`
+            : ''
+        }
+        confirmLabel="Supprimer"
+        onConfirm={() => {
+          removeSection(confirmSection.id);
+          setConfirmSection(null);
+          toast('Catégorie supprimée.');
+        }}
+        onClose={() => setConfirmSection(null)}
       />
     </div>
   );
