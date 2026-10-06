@@ -7,7 +7,7 @@ const DiceContext = createContext(null);
 
 export function useDice() {
   const ctx = useContext(DiceContext);
-  if (!ctx) throw new Error('useDice doit etre utilise dans <DiceProvider>');
+  if (!ctx) throw new Error('useDice doit être utilisé dans <DiceProvider>');
   return ctx;
 }
 
@@ -118,7 +118,7 @@ export function DiceProvider({ children }) {
 
       const result = rollExpression(expr, {
         modifiers,
-        character: options.ignoreModifiers ? null : activeCharacter,
+        character: options.character ?? (options.ignoreModifiers ? null : activeCharacter),
         label: options.label ?? null,
       });
 
