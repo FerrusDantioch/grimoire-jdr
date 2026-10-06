@@ -119,11 +119,11 @@ function JournalEditor({ entry, onBack }) {
       persist.flush(draftRef.current);
       const entries = exportScope === 'all' ? journal : [draftRef.current];
       await exportJournal(entries, format, { characterNames, title: "Journal d'aventure" });
-      toast(`Journal exporte en ${format.toUpperCase()}.`, 'ok');
+      toast(`Journal exporté en ${format.toUpperCase()}.`, 'ok');
       setExportOpen(false);
     } catch (err) {
       console.error(err);
-      toast("L'export a echoue.", 'err');
+      toast("L'export a échoué.", 'err');
     } finally {
       setExporting(false);
     }
@@ -143,7 +143,7 @@ function JournalEditor({ entry, onBack }) {
           <Icon name="arrowLeft" />
         </button>
         <div className="editor__bar-meta">
-          <span className="small muted">{savedAt ? `Enregistre ${formatRelative(savedAt)}` : ''}</span>
+          <span className="small muted">{savedAt ? `Enregistré ${formatRelative(savedAt)}` : ''}</span>
         </div>
         <button
           type="button"
@@ -151,7 +151,7 @@ function JournalEditor({ entry, onBack }) {
           onClick={() => setPreview((p) => !p)}
         >
           <Icon name="eye" />
-          {preview ? 'Editer' : 'Apercu'}
+          {preview ? 'Editer' : 'Aperçu'}
         </button>
         <button type="button" className="btn btn--sm" onClick={() => setExportOpen(true)}>
           <Icon name="download" />
@@ -161,7 +161,7 @@ function JournalEditor({ entry, onBack }) {
           type="button"
           className="btn btn--sm btn--danger btn--icon"
           onClick={() => setConfirmDelete(true)}
-          aria-label="Supprimer l'entree"
+          aria-label="Supprimer l'entrée"
         >
           <Icon name="trash" />
         </button>
@@ -172,8 +172,8 @@ function JournalEditor({ entry, onBack }) {
           className="editor__name"
           value={draft.title}
           onChange={(e) => update({ title: e.target.value })}
-          placeholder="Titre de la seance"
-          aria-label="Titre de la seance"
+          placeholder="Titre de la séance"
+          aria-label="Titre de la séance"
         />
         <div className="journal-meta">
           <label className="field" style={{ margin: 0 }}>
@@ -232,8 +232,8 @@ function JournalEditor({ entry, onBack }) {
             className="textarea journal-textarea"
             value={draft.content}
             onChange={(e) => update({ content: e.target.value })}
-            placeholder={'Ce qui s’est passe cette seance…\n\n## Rencontres\n- Le passeur du gue\n\n> « Vous ne passerez pas sans peage. »'}
-            aria-label="Contenu de la seance"
+            placeholder={'Ce qui s’est passe cette séance…\n\n## Rencontres\n- Le passeur du gue\n\n> « Vous ne passerez pas sans peage. »'}
+            aria-label="Contenu de la séance"
           />
         </div>
       )}
@@ -246,12 +246,12 @@ function JournalEditor({ entry, onBack }) {
         open={exportOpen}
         onClose={() => setExportOpen(false)}
         title="Exporter le journal"
-        subtitle="Choisissez le format et l’etendue de l’export."
+        subtitle="Choisissez le format et l’étendue de l’export."
         onExport={handleExport}
         busy={exporting}
         extra={
           <div>
-            <span className="label">Etendue</span>
+            <span className="label">Étendue</span>
             <div className="row row--wrap">
               <button
                 type="button"
@@ -259,7 +259,7 @@ function JournalEditor({ entry, onBack }) {
                 aria-pressed={exportScope === 'entry'}
                 onClick={() => setExportScope('entry')}
               >
-                Cette seance
+                Cette séance
               </button>
               <button
                 type="button"
@@ -276,13 +276,13 @@ function JournalEditor({ entry, onBack }) {
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Supprimer cette seance ?"
-        message={`« ${draft.title} » sera definitivement effacee.`}
+        title="Supprimer cette séance ?"
+        message={`« ${draft.title} » sera définitivement effacée.`}
         confirmLabel="Supprimer"
         onConfirm={async () => {
           persist.cancel();
           await deleteEntry(draft.id);
-          toast('Seance supprimee.');
+          toast('Séance supprimée.');
           onBack();
         }}
         onClose={() => setConfirmDelete(false)}
@@ -320,7 +320,7 @@ export default function JournalView({ openId, setOpenId }) {
   }, [journal, query]);
 
   const create = async () => {
-    const entry = createJournalEntry({ title: `Seance ${journal.length + 1}` });
+    const entry = createJournalEntry({ title: `Séance ${journal.length + 1}` });
     await saveEntry(entry);
     setOpenId(entry.id);
   };
@@ -329,11 +329,11 @@ export default function JournalView({ openId, setOpenId }) {
     setExporting(true);
     try {
       await exportJournal(journal, format, { characterNames, title: "Journal d'aventure" });
-      toast(`Journal exporte en ${format.toUpperCase()}.`, 'ok');
+      toast(`Journal exporté en ${format.toUpperCase()}.`, 'ok');
       setExportAllOpen(false);
     } catch (err) {
       console.error(err);
-      toast("L'export a echoue.", 'err');
+      toast("L'export a échoué.", 'err');
     } finally {
       setExporting(false);
     }
@@ -354,11 +354,11 @@ export default function JournalView({ openId, setOpenId }) {
         )}
         <button type="button" className="btn btn--primary btn--sm" onClick={create}>
           <Icon name="plus" />
-          Seance
+          Séance
         </button>
       </div>
 
-      {journal.length > 3 && (
+      {journal.length > 0 && (
         <div className="field">
           <input
             className="input"
@@ -374,16 +374,16 @@ export default function JournalView({ openId, setOpenId }) {
       {grouped.length === 0 ? (
         <div className="empty">
           <span className="empty__icon">📖</span>
-          <h3>{journal.length ? 'Aucun resultat' : 'Journal vide'}</h3>
+          <h3>{journal.length ? 'Aucun résultat' : 'Journal vide'}</h3>
           <p className="small">
             {journal.length
-              ? 'Aucune seance ne correspond a cette recherche.'
-              : 'Consignez vos seances, regroupees par chapitre.'}
+              ? 'Aucune séance ne correspond à cette recherche.'
+              : 'Consignez vos séances, regroupees par chapitre.'}
           </p>
           {!journal.length && (
             <button type="button" className="btn btn--primary" onClick={create} style={{ marginTop: 12 }}>
               <Icon name="plus" />
-              Premiere seance
+              Premiere séance
             </button>
           )}
         </div>
@@ -420,7 +420,7 @@ export default function JournalView({ openId, setOpenId }) {
         open={exportAllOpen}
         onClose={() => setExportAllOpen(false)}
         title="Exporter tout le journal"
-        subtitle={`${journal.length} seance(s) seront regroupees dans un seul fichier.`}
+        subtitle={`${journal.length} séance(s) seront regroupees dans un seul fichier.`}
         onExport={handleExportAll}
         busy={exporting}
       />
