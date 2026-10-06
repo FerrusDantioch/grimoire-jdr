@@ -6,7 +6,7 @@ const AppContext = createContext(null);
 
 export function useApp() {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp doit etre utilise dans <AppProvider>');
+  if (!ctx) throw new Error('useApp doit être utilisé dans <AppProvider>');
   return ctx;
 }
 
@@ -19,6 +19,8 @@ export function AppProvider({ children }) {
   const [documents, setDocuments] = useState([]);
   const [tracks, setTracks] = useState([]);
   const [playlists, setPlaylists] = useState([]);
+  const [encounters, setEncounters] = useState([]);
+  const [sounds, setSounds] = useState([]);
   const [theme, setTheme] = useState('grimoire');
   const [activeCharacterId, setActiveCharacterId] = useState(null);
   const [toasts, setToasts] = useState([]);
@@ -36,12 +38,14 @@ export function AppProvider({ children }) {
     let cancelled = false;
     (async () => {
       try {
-        const [chars, entries, docs, audio, lists, savedTheme, savedActive] = await Promise.all([
+        const [chars, entries, docs, audio, lists, encs, snds, savedTheme, savedActive] = await Promise.all([
           db.getAll(db.STORES.characters),
           db.getAll(db.STORES.journal),
           db.getAll(db.STORES.documents),
           db.getAll(db.STORES.tracks),
           db.getAll(db.STORES.playlists),
+          db.getAll(db.STORES.encounters),
+          db.getAll(db.STORES.sounds),
           db.getSetting('theme', 'grimoire'),
           db.getSetting('activeCharacterId', null),
         ]);
@@ -51,6 +55,8 @@ export function AppProvider({ children }) {
         setDocuments(docs.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)));
         setTracks(audio.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
         setPlaylists(lists);
+        setEncounters(encs.sort(byUpdated));
+        setSounds(snds.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
         setTheme(savedTheme);
         if (savedActive && chars.some((c) => c.id === savedActive)) setActiveCharacterId(savedActive);
         db.requestPersistence();
@@ -228,20 +234,67 @@ export function AppProvider({ children }) {
     setPlaylists((list) => list.filter((p) => p.id !== id));
   }, []);
 
+  /* ---------- combats (tracker d'initiative) ---------- */
+  const saveEncounter = useCallback(async (encounter) => {
+    const next = { ...encounter, updatedAt: Date.now() };
+    await db.put(db.STORES.encounters, next);
+    setEncounters((list) => {
+      const exists = list.some((e) => e.id === next.id);
+      const updated = exists ? list.map((e) => (e.id === next.id ? next : e)) : [...list, next];
+      return updated.sort(byUpdated);
+    });
+    return next;
+  }, []);
+
+  const deleteEncounter = useCallback(async (id) => {
+    await db.remove(db.STORES.encounters, id);
+    setEncounters((list) => list.filter((e) => e.id !== id));
+  }, []);
+
+  /* ---------- ambiances (soundboard) ---------- */
+  const addSounds = useCallback(async (files) => {
+    const created = files.map((file) => ({
+      id: uid('snd'),
+      name: file.name.replace(/\.[^.]+$/, ''),
+      type: file.type || 'audio/mpeg',
+      size: file.size,
+      blob: file,
+      loop: false,
+      addedAt: Date.now(),
+    }));
+    await db.putMany(db.STORES.sounds, created);
+    setSounds((list) => [...list, ...created].sort((a, b) => a.name.localeCompare(b.name)));
+    return created;
+  }, []);
+
+  const updateSound = useCallback(async (sound) => {
+    await db.put(db.STORES.sounds, sound);
+    setSounds((list) => list.map((snd) => (snd.id === sound.id ? sound : snd)));
+  }, []);
+
+  const deleteSound = useCallback(async (id) => {
+    await db.remove(db.STORES.sounds, id);
+    setSounds((list) => list.filter((snd) => snd.id !== id));
+  }, []);
+
   /* ---------- rechargement apres restauration ---------- */
   const reloadAll = useCallback(async () => {
-    const [chars, entries, docs, audio, lists] = await Promise.all([
+    const [chars, entries, docs, audio, lists, encs, snds] = await Promise.all([
       db.getAll(db.STORES.characters),
       db.getAll(db.STORES.journal),
       db.getAll(db.STORES.documents),
       db.getAll(db.STORES.tracks),
       db.getAll(db.STORES.playlists),
+      db.getAll(db.STORES.encounters),
+      db.getAll(db.STORES.sounds),
     ]);
     setCharacters(chars.sort(byUpdated));
     setJournal(entries.sort(byUpdated));
     setDocuments(docs.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)));
     setTracks(audio.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
     setPlaylists(lists);
+    setEncounters(encs.sort(byUpdated));
+    setSounds(snds.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
   }, []);
 
   const activeCharacter = useMemo(
@@ -262,6 +315,8 @@ export function AppProvider({ children }) {
       documents,
       tracks,
       playlists,
+      encounters,
+      sounds,
       theme,
       changeTheme,
       toasts,
@@ -283,14 +338,21 @@ export function AppProvider({ children }) {
       deleteTrack,
       savePlaylist,
       deletePlaylist,
+      saveEncounter,
+      deleteEncounter,
+      addSounds,
+      updateSound,
+      deleteSound,
       reloadAll,
     }),
     [
-      ready, characters, journal, documents, tracks, playlists, theme, changeTheme,
+      ready, characters, journal, documents, tracks, playlists, encounters, sounds,
+      theme, changeTheme,
       toasts, toast, dismissToast, activeCharacter, activeCharacterId, activateCharacter,
       characterNames, saveCharacter, deleteCharacter, saveEntry, deleteEntry,
       addDocument, updateDocument, deleteDocument, addTracks, updateTrack, deleteTrack,
-      savePlaylist, deletePlaylist, reloadAll,
+      savePlaylist, deletePlaylist, saveEncounter, deleteEncounter,
+      addSounds, updateSound, deleteSound, reloadAll,
     ]
   );
 
