@@ -26,10 +26,25 @@ function PdfViewer({ doc, onBack }) {
   const [pdf, setPdf] = useState(null);
   const [numPages, setNumPages] = useState(0);
   const [page, setPage] = useState(doc.lastPage || 1);
+  const [pageInput, setPageInput] = useState(String(doc.lastPage || 1));
   const [scale, setScale] = useState(1);
   const [fitWidth, setFitWidth] = useState(true);
   const [status, setStatus] = useState('loading');
   const [errorMsg, setErrorMsg] = useState('');
+
+  /* La saisie reste libre pendant la frappe ; le bornage n'a lieu qu'a la
+     validation, sinon impossible d'effacer le chiffre pour en taper un autre. */
+  const commitPageInput = useCallback(() => {
+    setPageInput((raw) => {
+      const target = clamp(Number(raw) || 1, 1, numPages || 1);
+      setPage(target);
+      return String(target);
+    });
+  }, [numPages]);
+
+  useEffect(() => {
+    setPageInput(String(page));
+  }, [page]);
   const [battlemap, setBattlemap] = useState(false);
   const [grid, setGrid] = useState({ on: true, size: 64, opacity: 0.4 });
   const [showGridPanel, setShowGridPanel] = useState(false);
@@ -260,9 +275,11 @@ function PdfViewer({ doc, onBack }) {
             type="number"
             min={1}
             max={numPages || 1}
-            value={page}
-            onChange={(e) => setPage(clamp(Number(e.target.value) || 1, 1, numPages || 1))}
-            aria-label="Numero de page"
+            value={pageInput}
+            onChange={(e) => setPageInput(e.target.value)}
+            onBlur={commitPageInput}
+            onKeyDown={(e) => e.key === 'Enter' && commitPageInput()}
+            aria-label="Numéro de page"
           />
           <span className="small muted">/ {numPages || '—'}</span>
           <button
@@ -284,7 +301,7 @@ function PdfViewer({ doc, onBack }) {
             type="button"
             className={`btn btn--sm${fitWidth ? ' btn--primary' : ''}`}
             onClick={() => setFitWidth((f) => !f)}
-            title="Ajuster a la largeur"
+            title="Ajuster à la largeur"
           >
             {fitWidth ? 'Ajuste' : `${Math.round(scale * 100)}%`}
           </button>
@@ -297,7 +314,7 @@ function PdfViewer({ doc, onBack }) {
               type="button"
               className={`btn btn--sm btn--icon${grid.on ? ' btn--primary' : ''}`}
               onClick={() => setShowGridPanel((s) => !s)}
-              aria-label="Reglages de la grille"
+              aria-label="Réglages de la grille"
             >
               <Icon name="grid" />
             </button>
@@ -396,10 +413,10 @@ export default function PdfView({ openId, setOpenId }) {
         await addDocument(file);
         added++;
       }
-      if (added) toast(`${added} document(s) importe(s).`, 'ok');
+      if (added) toast(`${added} document(s) importé(s).`, 'ok');
     } catch (err) {
       console.error(err);
-      toast("L'import a echoue (fichier trop volumineux ?).", 'err');
+      toast("L'import a échoué (fichier trop volumineux ?).", 'err');
     } finally {
       setImporting(false);
     }
@@ -423,7 +440,7 @@ export default function PdfView({ openId, setOpenId }) {
           <span className="empty__icon">🗺️</span>
           <h3>Aucun document</h3>
           <p className="small">
-            Importez vos regles, scenarios ou cartes en PDF. Ils restent stockes sur l’appareil et
+            Importez vos règles, scenarios ou cartes en PDF. Ils restent stockes sur l’appareil et
             fonctionnent hors ligne.
           </p>
           <button type="button" className="btn btn--primary" onClick={importPdf} style={{ marginTop: 12 }}>
@@ -442,7 +459,7 @@ export default function PdfView({ openId, setOpenId }) {
                 <span className="doc-card__body">
                   <strong>{d.name}</strong>
                   <span className="small muted">
-                    {formatBytes(d.size)} · ajoute {formatRelative(d.addedAt)}
+                    {formatBytes(d.size)} · ajouté {formatRelative(d.addedAt)}
                     {d.lastPage > 1 ? ` · page ${d.lastPage}` : ''}
                   </span>
                 </span>
@@ -463,11 +480,11 @@ export default function PdfView({ openId, setOpenId }) {
       <ConfirmDialog
         open={Boolean(confirmId)}
         title="Supprimer ce document ?"
-        message="Le fichier sera retire du stockage de l’application."
+        message="Le fichier sera retiré du stockage de l’application."
         confirmLabel="Supprimer"
         onConfirm={async () => {
           await deleteDocument(confirmId);
-          toast('Document supprime.');
+          toast('Document supprimé.');
         }}
         onClose={() => setConfirmId(null)}
       />
