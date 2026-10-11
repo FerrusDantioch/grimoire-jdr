@@ -90,7 +90,7 @@ export function formatBytes(bytes) {
     value /= 1024;
     i++;
   }
-  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[i]}`;
+  return `${value.toFixed(value < 10 ? 1 : 0).replace('.', ',')} ${units[i]}`;
 }
 
 /** Secondes -> « 3:07 » */

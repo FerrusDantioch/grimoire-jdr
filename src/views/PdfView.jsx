@@ -8,6 +8,10 @@ import './pdf.css';
 
 const ZOOM_MIN = 0.35;
 const ZOOM_MAX = 5;
+// Au-dela d'environ 16 millions de pixels, Safari (iOS) et beaucoup de
+// navigateurs mobiles refusent de dessiner un canvas : la page resterait
+// blanche aux forts zooms. On baisse alors la finesse du rendu, pas sa taille.
+const MAX_CANVAS_PIXELS = 16_000_000;
 
 let pdfjsPromise = null;
 function loadPdfjs() {
@@ -56,7 +60,42 @@ function PdfViewer({ doc, onBack }) {
   const pdfRef = useRef(null);
   const pageRef = useRef(page);
   pageRef.current = page;
+  const stageRef = useRef(null);
+  // Echelle affichee, lisible sans attendre un rendu React (gestes rapides).
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
+  // Point du document a garder sous le doigt (ou la souris) apres un zoom.
+  const anchorRef = useRef(null);
   const [viewportWidth, setViewportWidth] = useState(0);
+
+  /**
+   * Memorise le point de la page situe sous (clientX, clientY) : apres le
+   * prochain rendu, le defilement est ajuste pour qu'il y reste.
+   */
+  const anchorAt = useCallback((clientX, clientY, targetX = clientX, targetY = clientY) => {
+    const el = scrollRef.current;
+    const stage = stageRef.current;
+    if (!el || !stage) return;
+    const rect = stage.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    anchorRef.current = {
+      fx: (clientX - rect.left) / rect.width,
+      fy: (clientY - rect.top) / rect.height,
+      x: targetX - box.left,
+      y: targetY - box.top,
+    };
+  }, []);
+
+  const zoomTo = useCallback((next) => {
+    const value = clamp(Number(next.toFixed(2)), ZOOM_MIN, ZOOM_MAX);
+    // Le point memorise ne vaut que pour CE rendu : deja au zoom maximal,
+    // aucun rendu n'a lieu et il ne doit pas resservir au changement de page.
+    if (anchorRef.current) anchorRef.current.scale = value;
+    scaleRef.current = value;
+    setFitWidth(false);
+    setScale(value);
+  }, []);
 
   /* ---------- ouverture du document ---------- */
   useEffect(() => {
@@ -130,14 +169,28 @@ function PdfViewer({ doc, onBack }) {
         const base = pdfPage.getViewport({ scale: 1 });
         const effective = fitWidth ? (viewportWidth - 24) / base.width : scale;
         const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-        const viewport = pdfPage.getViewport({ scale: effective * dpr });
+        let renderScale = effective * dpr;
+        const pixels = base.width * base.height * renderScale * renderScale;
+        if (pixels > MAX_CANVAS_PIXELS) renderScale *= Math.sqrt(MAX_CANVAS_PIXELS / pixels);
+        const viewport = pdfPage.getViewport({ scale: renderScale });
 
         const canvas = canvasRef.current;
         if (!canvas) return;
         canvas.width = Math.floor(viewport.width);
         canvas.height = Math.floor(viewport.height);
-        canvas.style.width = `${Math.floor(viewport.width / dpr)}px`;
-        canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
+        canvas.style.width = `${Math.floor(base.width * effective)}px`;
+        canvas.style.height = `${Math.floor(base.height * effective)}px`;
+
+        // Apres un zoom, le point vise reste sous le doigt ou la souris.
+        const anchor = anchorRef.current;
+        anchorRef.current = null;
+        const el = scrollRef.current;
+        if (anchor && el && !fitWidth && anchor.scale === effective) {
+          const box = el.getBoundingClientRect();
+          const rect = canvas.getBoundingClientRect();
+          el.scrollLeft = rect.left - box.left + el.scrollLeft + anchor.fx * rect.width - anchor.x;
+          el.scrollTop = rect.top - box.top + el.scrollTop + anchor.fy * rect.height - anchor.y;
+        }
 
         const task = pdfPage.render({ canvasContext: canvas.getContext('2d', { alpha: false }), viewport });
         renderTaskRef.current = task;
@@ -210,6 +263,9 @@ function PdfViewer({ doc, onBack }) {
     let scrollY = 0;
 
     const down = (e) => {
+      // Au doigt, le navigateur defile tout seul (et le pincement est gere
+      // plus bas) : le glisser-deplacer ne sert qu'a la souris et au stylet.
+      if (e.pointerType === 'touch') return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight) return;
       dragging = true;
@@ -241,9 +297,88 @@ function PdfViewer({ doc, onBack }) {
     };
   }, []);
 
+  /* ---------- zoom a deux doigts, et pince du pave tactile ---------- */
+  useEffect(() => {
+    const el = scrollRef.current;
+    const stage = stageRef.current;
+    if (!el || !stage) return undefined;
+
+    // Evenements tactiles plutot que pointeurs : quand le navigateur commence
+    // a defiler, il annule les pointeurs (pointercancel), alors que les
+    // evenements tactiles continuent d'arriver. Pendant le geste, la page est
+    // agrandie par une simple transformation CSS (fluide) ; le vrai rendu,
+    // net, a lieu une fois les doigts leves.
+    let pinch = null;
+    const spread = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1;
+    const middle = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
+
+    const onStart = (e) => {
+      if (e.touches.length !== 2) return;
+      if (e.cancelable) e.preventDefault();
+      const [a, b] = e.touches;
+      const rect = stage.getBoundingClientRect();
+      const mid = middle(a, b);
+      pinch = { dist: spread(a, b), start: mid, mid, ratio: 1 };
+      stage.style.transformOrigin = `${mid.x - rect.left}px ${mid.y - rect.top}px`;
+    };
+
+    const onMove = (e) => {
+      if (!pinch || e.touches.length !== 2) return;
+      if (e.cancelable) e.preventDefault();
+      const [a, b] = e.touches;
+      const base = scaleRef.current || 1;
+      pinch.ratio = clamp(spread(a, b) / pinch.dist, ZOOM_MIN / base, ZOOM_MAX / base);
+      pinch.mid = middle(a, b);
+      const dx = pinch.mid.x - pinch.start.x;
+      const dy = pinch.mid.y - pinch.start.y;
+      stage.style.transform = `translate(${dx}px, ${dy}px) scale(${pinch.ratio})`;
+    };
+
+    const onEnd = (e) => {
+      if (!pinch || e.touches.length >= 2) return;
+      const { ratio, start, mid } = pinch;
+      pinch = null;
+      stage.style.transform = '';
+      if (Math.abs(ratio - 1) < 0.02) return;
+      // Le point qui etait sous les doigts au debut finit sous leur position finale.
+      anchorAt(start.x, start.y, mid.x, mid.y);
+      zoomTo(scaleRef.current * ratio);
+    };
+
+    // Pince du pave tactile et Ctrl + molette : le navigateur les signale
+    // comme une molette avec la touche Ctrl.
+    const onWheel = (e) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      // Un cran de molette (~100 px, ou 3 lignes sous Firefox) vaut environ
+      // 25 % de zoom ; le pave tactile envoie une multitude de petits pas.
+      const step = clamp(e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY, -50, 50);
+      anchorAt(e.clientX, e.clientY);
+      zoomTo(scaleRef.current * Math.exp(-step * 0.006));
+    };
+
+    el.addEventListener('touchstart', onStart, { passive: false });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+      el.removeEventListener('wheel', onWheel);
+    };
+  }, [anchorAt, zoomTo]);
+
+  /** Boutons + / - : on zoome autour du centre de la zone visible. */
   const zoom = (delta) => {
-    setFitWidth(false);
-    setScale((s) => clamp(Number((s + delta).toFixed(2)), ZOOM_MIN, ZOOM_MAX));
+    const el = scrollRef.current;
+    if (el) {
+      const box = el.getBoundingClientRect();
+      anchorAt(box.left + box.width / 2, box.top + box.height / 2);
+    }
+    zoomTo(scaleRef.current + delta);
   };
 
   return (
@@ -376,7 +511,7 @@ function PdfViewer({ doc, onBack }) {
             </button>
           </div>
         )}
-        <div className="pdf__stage" hidden={status !== 'ready'}>
+        <div className="pdf__stage" ref={stageRef} hidden={status !== 'ready'}>
           <canvas ref={canvasRef} className="pdf__canvas" />
           {battlemap && grid.on && (
             <div

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
 import { TEMPLATES, createCharacter } from '../lib/templates.js';
-import { colorFromString, formatRelative, initials } from '../lib/utils.js';
+import { colorFromString, formatRelative, initials, pickFiles } from '../lib/utils.js';
+import { characterFromFile } from '../lib/characterFile.js';
 import CharacterEditor from '../components/CharacterEditor.jsx';
 import Modal from '../components/Modal.jsx';
 import Icon from '../components/Icon.jsx';
@@ -29,8 +30,24 @@ export default function CharactersView({ openId, setOpenId }) {
     toast('Fiche créée.', 'ok');
   };
 
+  /** Importe une fiche exportee au format « Fiche Grimoire » (.json). */
+  const importCharacter = async () => {
+    const [file] = await pickFiles({ accept: 'application/json,.json' });
+    if (!file) return;
+    try {
+      const character = characterFromFile(JSON.parse(await file.text()));
+      await saveCharacter(character);
+      setOpenId(character.id);
+      toast(`Fiche « ${character.name} » importée.`, 'ok');
+    } catch (err) {
+      console.error(err);
+      toast(err instanceof SyntaxError ? 'Fichier illisible (JSON invalide).' : err.message, 'err');
+    }
+  };
+
   if (open) {
-    return <CharacterEditor character={open} onBack={() => setOpenId(null)} />;
+    // `key` : changer de fiche (duplication) repart d'un editeur neuf.
+    return <CharacterEditor key={open.id} character={open} onBack={() => setOpenId(null)} onOpen={setOpenId} />;
   }
 
   return (
@@ -38,6 +55,16 @@ export default function CharactersView({ openId, setOpenId }) {
       <div className="page-head">
         <h2>Personnages</h2>
         <span className="spacer" />
+        <button
+          type="button"
+          className="btn btn--sm"
+          onClick={importCharacter}
+          aria-label="Importer une fiche"
+          title="Importer une fiche (.json)"
+        >
+          <Icon name="upload" />
+          <span className="hide-xs">Importer</span>
+        </button>
         <button type="button" className="btn btn--primary btn--sm" onClick={() => setNewOpen(true)}>
           <Icon name="plus" />
           Nouveau
@@ -67,10 +94,16 @@ export default function CharactersView({ openId, setOpenId }) {
               : 'Créez une fiche : chaque catégorie et chaque champ porte le nom que vous choisissez.'}
           </p>
           {!characters.length && (
-            <button type="button" className="btn btn--primary" onClick={() => setNewOpen(true)} style={{ marginTop: 12 }}>
-              <Icon name="plus" />
-              Créer une fiche
-            </button>
+            <div className="row row--wrap" style={{ justifyContent: 'center', marginTop: 12 }}>
+              <button type="button" className="btn btn--primary" onClick={() => setNewOpen(true)}>
+                <Icon name="plus" />
+                Créer une fiche
+              </button>
+              <button type="button" className="btn" onClick={importCharacter}>
+                <Icon name="upload" />
+                Importer une fiche
+              </button>
+            </div>
           )}
         </div>
       ) : (

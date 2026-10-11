@@ -216,10 +216,17 @@
   margin-bottom: 8px;
 }
 
+/* Mobile : le nom sur toute la largeur, puis bonus, PV et bouton.
+   (Avec « 1fr auto », la colonne auto prenait la largeur naturelle d'un
+   champ et ecrasait le nom en une case vide.) */
 .combat__addrow {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 1fr auto;
   gap: 8px;
+}
+
+.combat__addrow > :first-child {
+  grid-column: 1 / -1;
 }
 
 .combat__addrow .btn {
@@ -229,6 +236,10 @@
 @media (min-width: 620px) {
   .combat__addrow {
     grid-template-columns: 1fr 110px 110px auto;
+  }
+
+  .combat__addrow > :first-child {
+    grid-column: auto;
   }
 }
 
@@ -270,4 +281,35 @@
 .combat-card__open:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
+}
+
+/* Bonus d'initiative affiche a cote du score (rappel de ce qui sera ajoute
+   au 1d20 lors d'un nouveau tirage). */
+.combatant__bonus {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.combat__hint {
+  margin: 8px 0 0;
+}
+
+/* Petits ecrans : cinq commandes dans la barre de tour (precedent, round,
+   tour suivant, initiative, reinitialiser) ; on resserre pour qu'aucune ne
+   soit coupee a 360 px. */
+@media (max-width: 419px) {
+  .combat__turnbar {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .combat__turnbar .btn--ghost {
+    padding: 0 9px;
+  }
+
+  .combat__round {
+    min-width: 44px;
+  }
 }
