@@ -1,6 +1,12 @@
 import { parseExpression, rollExpression, formatBreakdown, statToModifier, validateExpression } from '../src/lib/dice.js';
 import { renderMarkdown, markdownToPlainText, wordCount } from '../src/lib/markdown.js';
 
+// Fuseau a l'ouest de Greenwich, pose AVANT de charger utils.js (ses formats de
+// date figent le fuseau a leur creation) : le decalage d'un jour sur les dates
+// du journal ne se voit pas en UTC, fuseau des serveurs d'integration.
+process.env.TZ = 'Pacific/Tahiti';
+const { debounce, formatDate } = await import('../src/lib/utils.js');
+
 let fail = 0;
 const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fail++; };
 
@@ -54,6 +60,32 @@ ok(renderMarkdown('`a<b>c`').includes('<code>a&lt;b&gt;c</code>'), 'code span ec
 
 ok(markdownToPlainText('# T\n\n- x').includes('- x'), 'texte brut');
 ok(wordCount('un deux trois') === 3, 'compte de mots');
+
+// Sauvegarde differee des editeurs : `flush` ne doit rien faire sans
+// modification en attente (sinon un element supprime etait reenregistre).
+{
+  const saved = [];
+  const save = debounce((v) => saved.push(v), 50);
+  save.flush('rien');
+  ok(saved.length === 0, 'flush sans modification en attente : aucune sauvegarde');
+  save('a');
+  save.flush('a');
+  ok(saved.length === 1 && saved[0] === 'a', 'flush avec modification en attente : sauvegarde immediate');
+  save.flush('a');
+  ok(saved.length === 1, 'second flush : pas de doublon');
+  save('b');
+  save.cancel();
+  save.flush('b');
+  ok(saved.length === 1, 'flush apres cancel (suppression) : rien n’est reenregistre');
+  save('c');
+  await new Promise((r) => setTimeout(r, 80));
+  ok(saved.length === 2 && saved[1] === 'c', 'sauvegarde differee executee apres le delai');
+  save.flush('c');
+  ok(saved.length === 2, 'flush apres execution du delai : pas de doublon');
+}
+
+// Une date « AAAA-MM-JJ » s'affiche au jour choisi, quel que soit le fuseau.
+ok(/^11 /.test(formatDate('2026-10-11')), `date du journal au bon jour : ${formatDate('2026-10-11')}`);
 
 console.log(fail === 0 ? '\nTOUS LES TESTS PASSENT' : `\n${fail} ECHEC(S)`);
 process.exit(fail ? 1 : 0);

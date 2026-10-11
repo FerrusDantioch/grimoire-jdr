@@ -8,8 +8,8 @@ import './dice.css';
 
 const QUICK = [
   { label: 'Avantage', expr: '2d20kh1', hint: 'Deux d20, on garde le meilleur' },
-  { label: 'Desavantage', expr: '2d20kl1', hint: 'Deux d20, on garde le pire' },
-  { label: 'Caracteristique', expr: '4d6kh3', hint: 'Quatre d6, on jette le plus faible' },
+  { label: 'Désavantage', expr: '2d20kl1', hint: 'Deux d20, on garde le pire' },
+  { label: 'Caractéristique', expr: '4d6kh3', hint: 'Quatre d6, on jette le plus faible' },
 ];
 
 /** Chiffres qui defilent pendant l'animation du lancer. */
@@ -83,7 +83,7 @@ export default function DiceWidget() {
         onClick={() => setPanelOpen(!panelOpen)}
         aria-expanded={panelOpen}
         aria-label={
-          last && !rolling ? `Lanceur de des, dernier resultat ${last.total}` : 'Ouvrir le lanceur de des'
+          last && !rolling ? `Lanceur de dés, dernier résultat ${last.total}` : 'Ouvrir le lanceur de dés'
         }
       >
         <Icon name="dice" size={26} className="dice-fab__icon" />
@@ -91,7 +91,7 @@ export default function DiceWidget() {
       </button>
 
       {panelOpen && (
-        <div className="dice-panel" ref={panelRef} role="dialog" aria-label="Lanceur de des">
+        <div className="dice-panel" ref={panelRef} role="dialog" aria-label="Lanceur de dés">
           {/* -------- resultat -------- */}
           <div className={`dice-result${last?.crit === 'critique' ? ' dice-result--crit' : ''}${last?.crit === 'echec' ? ' dice-result--fumble' : ''}`}>
             {rolling ? (
@@ -112,7 +112,7 @@ export default function DiceWidget() {
                   <span className="dice-result__formula">{formatBreakdown(last)}</span>
                   {last.crit && (
                     <span className={`dice-badge dice-badge--${last.crit === 'critique' ? 'crit' : 'fumble'}`}>
-                      {last.crit === 'critique' ? 'Reussite critique' : 'Echec critique'}
+                      {last.crit === 'critique' ? 'Réussite critique' : 'Échec critique'}
                     </span>
                   )}
                   {last.characterName && (
@@ -120,7 +120,7 @@ export default function DiceWidget() {
                   )}
                 </>
               ) : (
-                <span className="muted">Choisissez un de pour commencer.</span>
+                <span className="muted">Choisissez un dé pour commencer.</span>
               )}
             </div>
           </div>
@@ -129,13 +129,13 @@ export default function DiceWidget() {
             {/* -------- des rapides -------- */}
             <div className="dice-section">
               <div className="dice-section__head">
-                <span className="label" style={{ margin: 0 }}>Des</span>
+                <span className="label" style={{ margin: 0 }}>Dés</span>
                 <div className="dice-count">
                   <button
                     type="button"
                     className="btn btn--sm btn--icon"
                     onClick={() => setCount((c) => Math.max(1, c - 1))}
-                    aria-label="Un de de moins"
+                    aria-label="Un dé de moins"
                   >
                     <Icon name="minus" />
                   </button>
@@ -144,7 +144,7 @@ export default function DiceWidget() {
                     type="button"
                     className="btn btn--sm btn--icon"
                     onClick={() => setCount((c) => Math.min(20, c + 1))}
-                    aria-label="Un de de plus"
+                    aria-label="Un dé de plus"
                   >
                     <Icon name="plus" />
                   </button>
@@ -175,7 +175,7 @@ export default function DiceWidget() {
                 availableModifiers.length ? (
                   <>
                     <p className="small muted dice-hint">
-                      Fiche ouverte : <strong>{activeCharacter.name}</strong> — touchez une caracteristique
+                      Fiche ouverte : <strong>{activeCharacter.name}</strong> — touchez une caractéristique
                       pour l’ajouter au jet.
                     </p>
                     <div className="dice-mods">
@@ -196,13 +196,13 @@ export default function DiceWidget() {
                   </>
                 ) : (
                   <p className="small muted dice-hint">
-                    <strong>{activeCharacter.name}</strong> n’a aucun champ numerique marque « utilisable comme
+                    <strong>{activeCharacter.name}</strong> n’a aucun champ numérique marqué « utilisable comme
                     modificateur ». Activez l’option sur un champ de la fiche.
                   </p>
                 )
               ) : (
                 <p className="small muted dice-hint">
-                  Ouvrez une fiche de personnage pour ajouter ses caracteristiques au jet.
+                  Ouvrez une fiche de personnage pour ajouter ses caractéristiques au jet.
                 </p>
               )}
 
@@ -251,7 +251,7 @@ export default function DiceWidget() {
                   value={expression}
                   onChange={(e) => setExpression(e.target.value)}
                   placeholder="2d6+3"
-                  aria-label="Expression de des"
+                  aria-label="Expression de dés"
                   aria-invalid={Boolean(error)}
                   spellCheck={false}
                   autoComplete="off"

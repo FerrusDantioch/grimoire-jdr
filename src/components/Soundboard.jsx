@@ -6,6 +6,7 @@ import Icon from './Icon.jsx';
 import Modal, { ConfirmDialog } from './Modal.jsx';
 
 const AUDIO_ACCEPT = 'audio/*,.mp3,.ogg,.wav,.m4a,.flac,.opus,.aac';
+const AUDIO_EXT = /\.(mp3|ogg|wav|m4a|flac|opus|aac)$/i;
 
 /**
  * Soundboard d'ambiances : chaque son est une pastille lecture/stop, avec
@@ -106,10 +107,18 @@ export default function Soundboard() {
   const importSounds = useCallback(async () => {
     const files = await pickFiles({ accept: AUDIO_ACCEPT, multiple: true });
     if (!files.length) return;
+    const audio = files.filter((f) => f.type.startsWith('audio/') || AUDIO_EXT.test(f.name));
+    if (!audio.length) {
+      toast('Aucun fichier audio reconnu.', 'err');
+      return;
+    }
     setImporting(true);
     try {
-      const created = await addSounds(files);
+      const created = await addSounds(audio);
       toast(`${created.length} ambiance(s) ajoutée(s).`, 'ok');
+    } catch (err) {
+      console.error(err);
+      toast("L'import a échoué (espace de stockage insuffisant ?).", 'err');
     } finally {
       setImporting(false);
     }

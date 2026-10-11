@@ -9,6 +9,12 @@ import './music.css';
 
 const AUDIO_ACCEPT = 'audio/*,.mp3,.ogg,.wav,.m4a,.flac,.opus,.aac';
 
+const REPEAT_LABELS = {
+  off: 'Répétition désactivée',
+  all: 'Répéter la file',
+  one: 'Répéter la piste',
+};
+
 function TrackRow({ track, isCurrent, playing, onPlay, onAdd, onDelete }) {
   return (
     <li className={`track${isCurrent ? ' track--current' : ''}`}>
@@ -25,7 +31,7 @@ function TrackRow({ track, isCurrent, playing, onPlay, onAdd, onDelete }) {
         type="button"
         className="btn btn--ghost btn--icon btn--sm"
         onClick={onAdd}
-        aria-label={`Ajouter ${track.name} a une playlist`}
+        aria-label={`Ajouter ${track.name} à une playlist`}
       >
         <Icon name="plus" />
       </button>
@@ -42,8 +48,11 @@ function TrackRow({ track, isCurrent, playing, onPlay, onAdd, onDelete }) {
 }
 
 export default function MusicView() {
-   const { tracks, playlists, sounds, addTracks, deleteTrack, savePlaylist, deletePlaylist, toast } = useApp();
- const { current, playing, playQueue, togglePlay, next, prev, volume, setVolume, position, duration, seek, shuffle, toggleShuffle, repeat, cycleRepeat, queueLabel } = usePlayer();
+  const { tracks, playlists, sounds, addTracks, deleteTrack, savePlaylist, deletePlaylist, toast } = useApp();
+  const {
+    current, playing, playQueue, togglePlay, next, prev, volume, setVolume,
+    position, duration, seek, shuffle, toggleShuffle, repeat, cycleRepeat, queueLabel,
+  } = usePlayer();
 
   const [tab, setTab] = useState('tracks');
   const [importing, setImporting] = useState(false);
@@ -68,10 +77,10 @@ export default function MusicView() {
         return;
       }
       await addTracks(audio);
-      toast(`${audio.length} piste(s) ajoutee(s).`, 'ok');
+      toast(`${audio.length} piste(s) ajoutée(s).`, 'ok');
     } catch (err) {
       console.error(err);
-      toast("L'import a echoue.", 'err');
+      toast("L'import a échoué.", 'err');
     } finally {
       setImporting(false);
     }
@@ -84,7 +93,7 @@ export default function MusicView() {
     await savePlaylist(playlist);
     setNewPlaylistName('');
     setCreating(false);
-    toast('Playlist creee.', 'ok');
+    toast('Playlist créée.', 'ok');
   };
 
   const playTrack = (track) => {
@@ -101,11 +110,11 @@ export default function MusicView() {
 
   const addToPlaylist = async (playlist, trackId) => {
     if (playlist.trackIds.includes(trackId)) {
-      toast('Deja dans cette playlist.');
+      toast('Déjà dans cette playlist.');
       return;
     }
     await savePlaylist({ ...playlist, trackIds: [...playlist.trackIds, trackId] });
-    toast(`Ajoutee a « ${playlist.name} ».`, 'ok');
+    toast(`Ajoutée à « ${playlist.name} ».`, 'ok');
     setAddTarget(null);
   };
 
@@ -186,12 +195,12 @@ export default function MusicView() {
         <ConfirmDialog
           open={Boolean(confirmPlaylist)}
           title="Supprimer cette playlist ?"
-          message="Les pistes audio elles-memes sont conservees."
+          message="Les pistes audio elles-mêmes sont conservées."
           confirmLabel="Supprimer"
           onConfirm={async () => {
             await deletePlaylist(confirmPlaylist.id);
             setOpenPlaylistId(null);
-            toast('Playlist supprimee.');
+            toast('Playlist supprimée.');
           }}
           onClose={() => setConfirmPlaylist(null)}
         />
@@ -204,13 +213,12 @@ export default function MusicView() {
       <div className="page-head">
         <h2>Musique</h2>
         <span className="spacer" />
-                {tab !== 'ambiances' && (
+        {tab !== 'ambiances' && (
           <button type="button" className="btn btn--primary btn--sm" onClick={importAudio} disabled={importing}>
             <Icon name="upload" />
             {importing ? 'Import…' : 'Importer'}
           </button>
         )}
-
       </div>
 
       <div className="segmented" role="tablist">
@@ -230,7 +238,7 @@ export default function MusicView() {
           className={tab === 'playlists' ? 'is-on' : ''}
           onClick={() => setTab('playlists')}
         >
-                    Playlists ({playlists.length})
+          Playlists ({playlists.length})
         </button>
         <button
           type="button"
@@ -244,7 +252,6 @@ export default function MusicView() {
       </div>
 
       {tab === 'ambiances' && <Soundboard />}
-
 
       {tab === 'tracks' ? (
         tracks.length === 0 ? (
@@ -288,11 +295,10 @@ export default function MusicView() {
               ))}
             </ul>
           </>
-                )
+        )
       ) : tab === 'playlists' ? (
         <>
           <button type="button" className="btn btn--block" onClick={() => setCreating(true)} style={{ marginBottom: 12 }}>
-
             <Icon name="plus" />
             Nouvelle playlist
           </button>
@@ -327,7 +333,7 @@ export default function MusicView() {
                   </button>
                 </div>
               ))}
-                        </div>
+            </div>
           )}
         </>
       ) : null}
@@ -366,11 +372,11 @@ export default function MusicView() {
               className={`btn btn--ghost btn--icon${shuffle ? ' is-on' : ''}`}
               onClick={toggleShuffle}
               aria-pressed={shuffle}
-              aria-label="Lecture aleatoire"
+              aria-label="Lecture aléatoire"
             >
               <Icon name="shuffle" />
             </button>
-            <button type="button" className="btn btn--icon" onClick={prev} aria-label="Piste precedente">
+            <button type="button" className="btn btn--icon" onClick={prev} aria-label="Piste précédente">
               <Icon name="skipBack" />
             </button>
             <button
@@ -388,8 +394,8 @@ export default function MusicView() {
               type="button"
               className={`btn btn--ghost btn--icon${repeat !== 'off' ? ' is-on' : ''}`}
               onClick={cycleRepeat}
-              aria-label={`Repetition : ${repeat}`}
-              title={repeat === 'one' ? 'Repeter la piste' : repeat === 'all' ? 'Repeter la file' : 'Repetition desactivee'}
+              aria-label={REPEAT_LABELS[repeat]}
+              title={REPEAT_LABELS[repeat]}
             >
               <Icon name="repeat" />
               {repeat === 'one' && <span className="player__repeat-one">1</span>}
@@ -401,7 +407,7 @@ export default function MusicView() {
               type="button"
               className="btn btn--ghost btn--icon btn--sm"
               onClick={() => setVolume(volume > 0 ? 0 : 0.8)}
-              aria-label={volume > 0 ? 'Couper le son' : 'Retablir le son'}
+              aria-label={volume > 0 ? 'Couper le son' : 'Rétablir le son'}
             >
               <Icon name={volume > 0 ? 'volume' : 'volumeOff'} />
             </button>
@@ -426,7 +432,7 @@ export default function MusicView() {
               Annuler
             </button>
             <button type="button" className="btn btn--primary" onClick={createPlaylist} disabled={!newPlaylistName.trim()}>
-              Creer
+              Créer
             </button>
           </>
         }
@@ -444,9 +450,9 @@ export default function MusicView() {
         </label>
       </Modal>
 
-      <Modal open={Boolean(addTarget)} onClose={() => setAddTarget(null)} title="Ajouter a une playlist">
+      <Modal open={Boolean(addTarget)} onClose={() => setAddTarget(null)} title="Ajouter à une playlist">
         {playlists.length === 0 ? (
-          <p className="small muted">Creez d’abord une playlist depuis l’onglet « Playlists ».</p>
+          <p className="small muted">Créez d’abord une playlist depuis l’onglet « Playlists ».</p>
         ) : (
           <div className="stack">
             {playlists.map((playlist) => (
@@ -468,11 +474,11 @@ export default function MusicView() {
       <ConfirmDialog
         open={Boolean(confirmTrack)}
         title="Supprimer cette piste ?"
-        message={`« ${confirmTrack?.name} » sera retiree du stockage et de toutes les playlists.`}
+        message={`« ${confirmTrack?.name} » sera retirée du stockage et de toutes les playlists.`}
         confirmLabel="Supprimer"
         onConfirm={async () => {
           await deleteTrack(confirmTrack.id);
-          toast('Piste supprimee.');
+          toast('Piste supprimée.');
         }}
         onClose={() => setConfirmTrack(null)}
       />

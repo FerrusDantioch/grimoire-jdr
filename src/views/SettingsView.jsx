@@ -199,9 +199,9 @@ export default function SettingsView() {
         confirmLabel="Tout effacer"
         onConfirm={async () => {
           await db.wipeAll();
-          await reloadAll();
-          await refreshUsage();
-          toast('Toutes les données ont été effacées.');
+          // Rechargement complet : historique de dés, fiche active, thème et
+          // lecteur vivent aussi en mémoire et resteraient affichés sinon.
+          window.location.reload();
         }}
         onClose={() => setConfirmWipe(false)}
       />
