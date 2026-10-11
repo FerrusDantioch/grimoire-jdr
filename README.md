@@ -30,7 +30,7 @@ npm start
 | `npm run dev` | Serveur de développement (rechargement à chaud) sur http://localhost:5173 |
 | `npm run build` | Build de production dans `dist/` (manifeste + service worker) |
 | `npm run serve` | Sert `dist/` sans recompiler ni ouvrir le navigateur |
-| `npm test` | Tests du moteur de dés et du rendu markdown (28 assertions) |
+| `npm test` | Tests du moteur de dés, du rendu markdown et de la sauvegarde différée (35 assertions) |
 | `npm run icons` | Régénère les icônes PNG de la PWA |
 
 ### Pourquoi un double-clic sur `index.html` donne une page blanche
@@ -85,7 +85,8 @@ immédiate à la fermeture de la fiche.
 Bouton flottant présent sur **tous** les onglets, affichant le dernier résultat.
 Le panneau propose d4 à d100 avec compteur, une expression libre
 (`2d6+3`, `4d6kh3`, `2d20kl1`…), des raccourcis avantage / désavantage, une
-animation de lancer et l'historique des 200 derniers jets (rejouables d'un tap).
+animation de lancer et l'historique des derniers jets (les 200 plus récents sont
+conservés, les 25 plus récents s'affichent, rejouables d'un tap).
 
 **Modificateurs de personnage** — quand une fiche est ouverte, elle devient la
 fiche active : ses champs numériques marqués « utilisable comme modificateur »
@@ -99,11 +100,27 @@ peut ajouter un bonus manuel temporaire, et le résultat est détaillé :
 Deux modes de calcul par champ : **valeur brute** (le nombre est ajouté tel quel)
 ou **modificateur d20** (`(valeur − 10) / 2`, arrondi vers le bas — Force 16 → +3).
 
+Chaque champ modificateur porte aussi, **directement dans la fiche**, un petit
+bouton dé : un tap lance `1d20 + modificateur` et affiche le détail du jet en
+notification, sans ouvrir le panneau.
+
 ### Journal d'aventure
 Éditeur markdown avec barre d'insertion et aperçu rendu. Les séances se
 regroupent par chapitre, portent une date et peuvent être liées à des
 personnages. Recherche plein texte, compteur de mots, export d'une séance ou du
 journal entier.
+
+### Tracker de combat
+Onglet **Combat** : préparez des rencontres à l'avance ou montez-les à table.
+Chaque combatant porte nom, initiative, points de vie (avec jauge) et une note
+libre pour les états (« empoisonné », « à terre »…). Les combattants se trient
+par initiative décroissante ; **Commencer** / **Tour suivant** font avancer le
+tour et incrémentent le round à chaque boucle. Boutons −1 / +1 / −5 / +5 sur
+les PV (bornés de 0 au maximum), réinitialisation complète en un clic, et
+import direct **depuis les fiches** : initiative et PV sont détectés d'après
+les noms de champs (« Initiative », « Points de vie », « PV maximum »…). À 0
+PV, le combattant apparaît barré. Terminer un combat demande confirmation et le
+retire de la liste.
 
 ### Visionneuse PDF
 pdf.js intégré : navigation par page (clavier inclus), zoom, ajustement à la
@@ -118,6 +135,14 @@ lecture aléatoire et répétition. L'élément audio vit au-dessus des vues : *
 lecture continue quand on change d'onglet ou que l'onglet passe en arrière-plan**,
 et l'API Media Session expose les commandes sur l'écran de verrouillage. Une
 barre de lecture compacte reste visible partout dans l'application.
+
+### Soundboard d'ambiances
+Troisième onglet de la section Musique : importez des effets sonores ou des
+ambiances (mp3, ogg, wav…) et déclenchez-les d'un tap sur des pastilles.
+Chaque pastille a son bouton lecture/stop, un mode **boucle** (pluie, feu de
+camp…), un renommage et une suppression ; un volume global dédié est mémorisé.
+Plusieurs ambiances peuvent jouer en même temps, indépendamment du lecteur de
+musique.
 
 ### Export
 Modale de confirmation avec choix du format :
@@ -149,13 +174,15 @@ src/
 │   ├── DiceContext.jsx      jets, historique, modificateurs actifs
 │   └── PlayerContext.jsx    lecteur audio global + Media Session
 ├── components/              Icon, Modal, ExportModal, DiceWidget,
-│                            CharacterEditor, MiniPlayer, Toasts
-├── views/                   Personnages, Journal, Documents, Musique, Réglages
+│                            CharacterEditor, MiniPlayer, Soundboard, Toasts
+├── views/                   Personnages, Journal, Combat, Documents, Musique,
+│                            Réglages
 └── styles/                  design system et styles partagés
 ```
 
 Les données vivent dans IndexedDB (`grimoire-jdr`) : `characters`, `journal`,
-`documents`, `tracks`, `playlists`, `rolls`, plus un magasin `settings` clé/valeur.
+`documents`, `tracks`, `playlists`, `rolls`, `encounters`, `sounds`, plus un
+magasin `settings` clé/valeur.
 Les PDF et fichiers audio sont stockés en `Blob`. L'application demande la
 persistance du stockage au premier lancement pour éviter l'éviction automatique.
 
@@ -179,9 +206,11 @@ en compte. Deux thèmes, **grimoire** (sombre) et **parchemin** (clair).
 
 ## Vérifications effectuées
 
-- `npm test` : 28 assertions sur l'analyse d'expressions, les bornes de tirage,
-  `kh`/`kl`, les modificateurs, la détection des critiques, le rendu markdown et
-  la neutralisation du HTML et des liens `javascript:`.
+- `npm test` : 35 assertions sur l'analyse d'expressions, les bornes de tirage,
+  `kh`/`kl`, les modificateurs, la détection des critiques, le rendu markdown,
+  la neutralisation du HTML et des liens `javascript:`, la sauvegarde différée
+  des éditeurs (un élément supprimé ne doit jamais être réenregistré) et
+  l'affichage des dates du journal quel que soit le fuseau horaire.
 - Parcours manuel : création de fiche, modificateur Force 16 → +3 appliqué à un
   `1d20`, journal avec aperçu markdown, visionneuse PDF sur deux pages, mode
   battlemap avec grille, lecture audio avec enchaînement des pistes et barre
