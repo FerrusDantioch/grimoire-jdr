@@ -35,14 +35,20 @@ export default function SettingsView() {
     refreshUsage();
   }, []);
 
-  const exportBackup = async () => {
-    setBusy('export');
+  /**
+   * Sauvegarde complete (PDF et sons encodes dans le fichier, qui peut peser
+   * des centaines de Mo) ou legere (fiches, journal, combats, playlists,
+   * historique de des : quelques Ko, ideale pour une sauvegarde reguliere).
+   */
+  const exportBackup = async (includeFiles) => {
+    const kind = includeFiles ? 'export' : 'export-light';
+    setBusy(kind);
     try {
-      const dump = await db.exportBackup({ includeFiles: true });
+      const dump = await db.exportBackup({ includeFiles });
       const blob = new Blob([JSON.stringify(dump)], { type: 'application/json' });
       const stamp = new Date().toISOString().slice(0, 10);
-      downloadBlob(blob, `grimoire-sauvegarde-${stamp}.json`);
-      toast('Sauvegarde téléchargée.', 'ok');
+      downloadBlob(blob, `grimoire-sauvegarde${includeFiles ? '' : '-legere'}-${stamp}.json`);
+      toast(`Sauvegarde ${includeFiles ? 'complète' : 'légère'} téléchargée (${formatBytes(blob.size)}).`, 'ok');
     } catch (err) {
       console.error(err);
       toast('La sauvegarde a échoué.', 'err');
@@ -74,6 +80,10 @@ export default function SettingsView() {
       setBusy('');
     }
   };
+
+  // Poids des fichiers stockes ; l'encodage en data-URL de la sauvegarde
+  // complete y ajoute environ un tiers (d'ou le facteur 1,37 affiche).
+  const fileBytes = [...documents, ...tracks, ...sounds].reduce((sum, item) => sum + (item.size || 0), 0);
 
   const counts = [
     { label: 'Personnages', value: characters.length },
@@ -158,15 +168,36 @@ export default function SettingsView() {
           </div>
         )}
 
-        <Row icon="save" title="Sauvegarder" description="Un fichier JSON contenant fiches, journal, PDF et musiques.">
-          <button type="button" className="btn btn--sm" onClick={exportBackup} disabled={busy === 'export'}>
+        <Row
+          icon="save"
+          title="Sauvegarde légère"
+          description="Fiches, journal, combats, playlists et historique de dés, sans les PDF ni les fichiers audio. Quelques Ko : idéale pour sauvegarder souvent."
+        >
+          <button type="button" className="btn btn--sm" onClick={() => exportBackup(false)} disabled={Boolean(busy)}>
+            <Icon name="download" />
+            {busy === 'export-light' ? 'En cours…' : 'Exporter'}
+          </button>
+        </Row>
+
+        <Row
+          icon="save"
+          title="Sauvegarde complète"
+          description={`Tout, y compris les PDF, musiques et ambiances${
+            fileBytes ? ` (environ ${formatBytes(fileBytes * 1.37)})` : ''
+          }. Peut être volumineuse.`}
+        >
+          <button type="button" className="btn btn--sm" onClick={() => exportBackup(true)} disabled={Boolean(busy)}>
             <Icon name="download" />
             {busy === 'export' ? 'En cours…' : 'Exporter'}
           </button>
         </Row>
 
-        <Row icon="upload" title="Restaurer" description="Fusionne le contenu du fichier avec les données actuelles.">
-          <button type="button" className="btn btn--sm" onClick={importBackup} disabled={busy === 'import'}>
+        <Row
+          icon="upload"
+          title="Restaurer"
+          description="Fusionne le contenu d’une sauvegarde (légère ou complète) avec les données actuelles."
+        >
+          <button type="button" className="btn btn--sm" onClick={importBackup} disabled={Boolean(busy)}>
             <Icon name="upload" />
             {busy === 'import' ? 'En cours…' : 'Importer'}
           </button>
@@ -199,9 +230,9 @@ export default function SettingsView() {
         confirmLabel="Tout effacer"
         onConfirm={async () => {
           await db.wipeAll();
-          await reloadAll();
-          await refreshUsage();
-          toast('Toutes les données ont été effacées.');
+          // Rechargement complet : historique de dés, fiche active, thème et
+          // lecteur vivent aussi en mémoire et resteraient affichés sinon.
+          window.location.reload();
         }}
         onClose={() => setConfirmWipe(false)}
       />

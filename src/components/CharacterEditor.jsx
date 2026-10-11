@@ -4,6 +4,7 @@ import { useDice } from '../state/DiceContext.jsx';
 import { FIELD_TYPES, field as makeField, section as makeSection } from '../lib/templates.js';
 import { MOD_MODES, formatBreakdown, statToModifier } from '../lib/dice.js';
 import { exportCharacter } from '../lib/exporters.js';
+import { cloneCharacter } from '../lib/characterFile.js';
 import { debounce, formatRelative, move } from '../lib/utils.js';
 import Icon from './Icon.jsx';
 import ExportModal from './ExportModal.jsx';
@@ -169,7 +170,7 @@ function FieldRow({ field, onChange, onRemove, onMove, onRoll, isFirst, isLast }
                 onChange={(e) =>
                   onChange({ options: e.target.value.split('\n').map((o) => o.trim()).filter(Boolean) })
                 }
-                placeholder={'Novice\nAguerri\nMaitre'}
+                placeholder={'Novice\nAguerri\nMaître'}
               />
             </label>
           )}
@@ -195,7 +196,7 @@ function FieldRow({ field, onChange, onRemove, onMove, onRoll, isFirst, isLast }
   );
 }
 
-export default function CharacterEditor({ character, onBack }) {
+export default function CharacterEditor({ character, onBack, onOpen }) {
   const { saveCharacter, deleteCharacter, activateCharacter, activeCharacterId, toast } = useApp();
   const { roll, setPanelOpen } = useDice();
 
@@ -326,12 +327,25 @@ export default function CharacterEditor({ character, onBack }) {
     [draft.sections]
   );
 
+  /** Copie complete de la fiche (nouveaux identifiants), ouverte aussitot. */
+  const duplicate = async () => {
+    persist.flush(draftRef.current);
+    try {
+      const copy = await saveCharacter(cloneCharacter(draftRef.current));
+      toast(`Fiche dupliquée : « ${copy.name} ».`, 'ok');
+      onOpen?.(copy.id);
+    } catch (err) {
+      console.error(err);
+      toast('La duplication a échoué.', 'err');
+    }
+  };
+
   const handleExport = async (format) => {
     setExporting(true);
     try {
       persist.flush(draftRef.current);
       await exportCharacter(draftRef.current, format);
-      toast(`Fiche exportée en ${format.toUpperCase()}.`, 'ok');
+      toast(format === 'json' ? 'Fiche exportée (fichier Grimoire).' : `Fiche exportée en ${format.toUpperCase()}.`, 'ok');
       setExportOpen(false);
     } catch (err) {
       console.error(err);
@@ -355,6 +369,15 @@ export default function CharacterEditor({ character, onBack }) {
         <button type="button" className="btn btn--sm" onClick={() => setExportOpen(true)}>
           <Icon name="download" />
           Exporter
+        </button>
+        <button
+          type="button"
+          className="btn btn--sm btn--icon"
+          onClick={duplicate}
+          aria-label="Dupliquer la fiche"
+          title="Dupliquer la fiche"
+        >
+          <Icon name="copy" />
         </button>
         <button
           type="button"
@@ -394,7 +417,7 @@ export default function CharacterEditor({ character, onBack }) {
           <Icon name="dice" size={16} />
           {modifierCount > 0
             ? `${modifierCount} caractéristique${modifierCount > 1 ? 's' : ''} disponible${modifierCount > 1 ? 's' : ''} comme modificateur — ouvrir les dés`
-            : 'Aucun modificateur : activez l’option sur un champ numerique'}
+            : 'Aucun modificateur : activez l’option sur un champ numérique'}
         </button>
       </div>
 
@@ -408,7 +431,7 @@ export default function CharacterEditor({ character, onBack }) {
                 className="btn btn--ghost btn--icon btn--sm"
                 onClick={() => setCollapsed((c) => ({ ...c, [section.id]: !c[section.id] }))}
                 aria-expanded={!isCollapsed}
-                aria-label={isCollapsed ? 'Deplier la catégorie' : 'Replier la catégorie'}
+                aria-label={isCollapsed ? 'Déplier la catégorie' : 'Replier la catégorie'}
               >
                 <Icon name={isCollapsed ? 'chevronRight' : 'chevronDown'} />
               </button>
@@ -484,7 +507,7 @@ export default function CharacterEditor({ character, onBack }) {
           rows={5}
           value={draft.notes || ''}
           onChange={(e) => update({ notes: e.target.value })}
-          placeholder="Historique, contacts, objectifs… (markdown accepte)"
+          placeholder="Historique, contacts, objectifs… (markdown accepté)"
         />
       </section>
 
@@ -492,7 +515,8 @@ export default function CharacterEditor({ character, onBack }) {
         open={exportOpen}
         onClose={() => setExportOpen(false)}
         title={`Exporter « ${draft.name} »`}
-        subtitle="Choisissez le format du fichier a telecharger."
+        subtitle="Choisissez le format du fichier à télécharger."
+        formats={['pdf', 'txt', 'json']}
         onExport={handleExport}
         busy={exporting}
       />

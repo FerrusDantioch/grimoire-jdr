@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
+import { useDice } from '../state/DiceContext.jsx';
+import { formatBreakdown, formatRollForJournal } from '../lib/dice.js';
 import { createJournalEntry } from '../lib/templates.js';
 import { renderMarkdown, wordCount } from '../lib/markdown.js';
 import { exportJournal } from '../lib/exporters.js';
 import { debounce, formatDate, formatRelative } from '../lib/utils.js';
 import Icon from '../components/Icon.jsx';
 import ExportModal from '../components/ExportModal.jsx';
-import { ConfirmDialog } from '../components/Modal.jsx';
+import Modal, { ConfirmDialog } from '../components/Modal.jsx';
 
 const SANS_CHAPITRE = 'Sans chapitre';
 
 /** Barre d'insertion markdown au-dessus de la zone de saisie. */
-function MarkdownToolbar({ textareaRef, onChange }) {
+function MarkdownToolbar({ textareaRef, onChange, onInsertRoll }) {
   const wrap = (before, after = before, placeholder = 'texte') => {
     const el = textareaRef.current;
     if (!el) return;
@@ -45,6 +47,7 @@ function MarkdownToolbar({ textareaRef, onChange }) {
     { icon: 'list', label: 'Liste', run: () => prefix('- ') },
     { label: '"', title: 'Citation', run: () => prefix('> ') },
     { icon: 'link', label: 'Lien', run: () => wrap('[', '](https://)', 'lien') },
+    { icon: 'dice', label: 'Jet', title: 'Insérer un jet de dés', run: onInsertRoll },
   ];
 
   return (
@@ -74,7 +77,9 @@ function JournalEditor({ entry, onBack }) {
   const [exportScope, setExportScope] = useState('entry');
   const [exporting, setExporting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [rollPickerOpen, setRollPickerOpen] = useState(false);
   const [savedAt, setSavedAt] = useState(entry.updatedAt);
+  const { history } = useDice();
   const textareaRef = useRef(null);
   const draftRef = useRef(draft);
   draftRef.current = draft;
@@ -117,7 +122,12 @@ function JournalEditor({ entry, onBack }) {
     setExporting(true);
     try {
       persist.flush(draftRef.current);
-      const entries = exportScope === 'all' ? journal : [draftRef.current];
+      // La sauvegarde est asynchrone : `journal` peut encore contenir l'ancienne
+      // version de la seance ouverte, on y substitue donc le brouillon.
+      const entries =
+        exportScope === 'all'
+          ? journal.map((e) => (e.id === draftRef.current.id ? draftRef.current : e))
+          : [draftRef.current];
       await exportJournal(entries, format, { characterNames, title: "Journal d'aventure" });
       toast(`Journal exporté en ${format.toUpperCase()}.`, 'ok');
       setExportOpen(false);
@@ -127,6 +137,30 @@ function JournalEditor({ entry, onBack }) {
     } finally {
       setExporting(false);
     }
+  };
+
+  /**
+   * Insere un jet de l'historique a l'emplacement du curseur, sur sa propre
+   * ligne. La zone de texte garde sa selection meme quand la fenetre de choix
+   * lui a pris le focus.
+   */
+  const insertRoll = (result) => {
+    const el = textareaRef.current;
+    const value = draft.content || '';
+    const start = el ? el.selectionStart : value.length;
+    const end = el ? el.selectionEnd : value.length;
+    const before = value.slice(0, start);
+    const after = value.slice(end);
+    const line = formatRollForJournal(result);
+    const lead = before && !before.endsWith('\n') ? '\n' : '';
+    const tail = after && !after.startsWith('\n') ? '\n' : '';
+    update({ content: before + lead + line + tail + after });
+    setRollPickerOpen(false);
+    const caret = (before + lead + line).length;
+    requestAnimationFrame(() => {
+      el?.focus();
+      el?.setSelectionRange(caret, caret);
+    });
   };
 
   const toggleCharacter = (id) =>
@@ -151,7 +185,7 @@ function JournalEditor({ entry, onBack }) {
           onClick={() => setPreview((p) => !p)}
         >
           <Icon name="eye" />
-          {preview ? 'Editer' : 'Aperçu'}
+          {preview ? 'Éditer' : 'Aperçu'}
         </button>
         <button type="button" className="btn btn--sm" onClick={() => setExportOpen(true)}>
           <Icon name="download" />
@@ -204,7 +238,7 @@ function JournalEditor({ entry, onBack }) {
 
         {characters.length > 0 && (
           <div>
-            <span className="label">Personnages presents</span>
+            <span className="label">Personnages présents</span>
             <div className="row row--wrap">
               {characters.map((c) => (
                 <button
@@ -226,13 +260,17 @@ function JournalEditor({ entry, onBack }) {
         <div className="card card--pad md-preview" dangerouslySetInnerHTML={{ __html: html }} />
       ) : (
         <div className="card">
-          <MarkdownToolbar textareaRef={textareaRef} onChange={(content) => update({ content })} />
+          <MarkdownToolbar
+            textareaRef={textareaRef}
+            onChange={(content) => update({ content })}
+            onInsertRoll={() => setRollPickerOpen(true)}
+          />
           <textarea
             ref={textareaRef}
             className="textarea journal-textarea"
             value={draft.content}
             onChange={(e) => update({ content: e.target.value })}
-            placeholder={'Ce qui s’est passe cette séance…\n\n## Rencontres\n- Le passeur du gue\n\n> « Vous ne passerez pas sans peage. »'}
+            placeholder={'Ce qui s’est passé cette séance…\n\n## Rencontres\n- Le passeur du gué\n\n> « Vous ne passerez pas sans péage. »'}
             aria-label="Contenu de la séance"
           />
         </div>
@@ -273,6 +311,29 @@ function JournalEditor({ entry, onBack }) {
           </div>
         }
       />
+
+      <Modal open={rollPickerOpen} onClose={() => setRollPickerOpen(false)} title="Insérer un jet de dés">
+        {history.length === 0 ? (
+          <p className="small muted" style={{ margin: 0 }}>
+            Aucun jet pour l’instant. Lancez les dés avec le bouton en bas à droite, puis revenez ici.
+          </p>
+        ) : (
+          <div className="stack">
+            {history.slice(0, 12).map((roll) => (
+              <button key={roll.id} type="button" className="roll-pick" onClick={() => insertRoll(roll)}>
+                <span className="roll-pick__total">{roll.total}</span>
+                <span className="roll-pick__body">
+                  <span className="mono small">{formatBreakdown(roll)}</span>
+                  <span className="small muted">
+                    {[roll.characterName, roll.label].filter(Boolean).join(' · ') || 'Jet libre'} ·{' '}
+                    {formatRelative(roll.at)}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </Modal>
 
       <ConfirmDialog
         open={confirmDelete}
@@ -378,12 +439,12 @@ export default function JournalView({ openId, setOpenId }) {
           <p className="small">
             {journal.length
               ? 'Aucune séance ne correspond à cette recherche.'
-              : 'Consignez vos séances, regroupees par chapitre.'}
+              : 'Consignez vos séances, regroupées par chapitre.'}
           </p>
           {!journal.length && (
             <button type="button" className="btn btn--primary" onClick={create} style={{ marginTop: 12 }}>
               <Icon name="plus" />
-              Premiere séance
+              Première séance
             </button>
           )}
         </div>
@@ -420,7 +481,7 @@ export default function JournalView({ openId, setOpenId }) {
         open={exportAllOpen}
         onClose={() => setExportAllOpen(false)}
         title="Exporter tout le journal"
-        subtitle={`${journal.length} séance(s) seront regroupees dans un seul fichier.`}
+        subtitle={`${journal.length} séance(s) seront regroupées dans un seul fichier.`}
         onExport={handleExportAll}
         busy={exporting}
       />

@@ -1,5 +1,6 @@
 import { downloadBlob, downloadText, formatDate, formatDateTime, safeFilename } from './utils.js';
 import { parseBlocks, markdownToPlainText, stripInline } from './markdown.js';
+import { characterToFile } from './characterFile.js';
 
 /* =========================================================
    Mise en page PDF partagee
@@ -203,7 +204,7 @@ export async function characterToPDF(character) {
     }
   }
 
-  drawFooter(doc, `Fiche de personnage · exportee le ${formatDate(Date.now())}`);
+  drawFooter(doc, `Fiche de personnage · exportée le ${formatDate(Date.now())}`);
   return doc;
 }
 
@@ -212,9 +213,9 @@ export function characterToText(character) {
   const rule = (c = '=') => c.repeat(56);
 
   out.push(rule(), (character.name || 'Personnage sans nom').toUpperCase(), rule());
-  if (character.system) out.push(`Systeme : ${character.system}`);
-  if (character.role) out.push(`Role : ${character.role}`);
-  out.push(`Exporte le ${formatDateTime(Date.now())}`, '');
+  if (character.system) out.push(`Système : ${character.system}`);
+  if (character.role) out.push(`Rôle : ${character.role}`);
+  out.push(`Exportée le ${formatDateTime(Date.now())}`, '');
 
   for (const section of character.sections || []) {
     out.push(`## ${section.name || 'Section'}`, rule('-'));
@@ -339,7 +340,7 @@ export async function journalToPDF(entries, { title = "Journal d'aventure", char
     single ? list[0].title || 'Sans titre' : title,
     single
       ? [list[0].chapter, list[0].date ? formatDate(list[0].date) : null].filter(Boolean).join(' · ') || null
-      : `${list.length} entrees`
+      : `${list.length} entrées`
   );
 
   list.forEach((entry, index) => {
@@ -379,7 +380,7 @@ export async function journalToPDF(entries, { title = "Journal d'aventure", char
     drawMarkdown(doc, cur, entry.content || '');
   });
 
-  drawFooter(doc, `Journal d'aventure · exporte le ${formatDate(Date.now())}`);
+  drawFooter(doc, `Journal d'aventure · exporté le ${formatDate(Date.now())}`);
   return doc;
 }
 
@@ -407,6 +408,9 @@ export async function exportCharacter(character, format) {
   if (format === 'pdf') {
     const doc = await characterToPDF(character);
     downloadBlob(doc.output('blob'), `${base}.pdf`);
+  } else if (format === 'json') {
+    // Fiche reimportable dans Grimoire (bouton « Importer » des Personnages).
+    downloadText(JSON.stringify(characterToFile(character), null, 2), `${base}.json`, 'application/json');
   } else {
     downloadText(characterToText(character), `${base}.txt`);
   }

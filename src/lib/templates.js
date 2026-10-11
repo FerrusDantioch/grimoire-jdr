@@ -1,11 +1,11 @@
 import { uid } from './utils.js';
 
 export const FIELD_TYPES = [
-  { id: 'number', label: 'Nombre', hint: 'Utilisable comme modificateur de des' },
+  { id: 'number', label: 'Nombre', hint: 'Utilisable comme modificateur de dés' },
   { id: 'text', label: 'Texte court' },
   { id: 'longtext', label: 'Texte long' },
-  { id: 'select', label: 'Liste deroulante' },
-  { id: 'checkbox', label: 'Case a cocher' },
+  { id: 'select', label: 'Liste déroulante' },
+  { id: 'checkbox', label: 'Case à cocher' },
 ];
 
 export const field = (label, type = 'text', value = '', extra = {}) => ({
@@ -37,30 +37,30 @@ export const TEMPLATES = [
   {
     id: 'vierge',
     name: 'Fiche vierge',
-    description: 'Une seule categorie vide, a construire entierement.',
+    description: 'Une seule catégorie vide, à construire entièrement.',
     icon: '📄',
     build: () => ({
       system: '',
-      sections: [section('Nouvelle categorie', [field('Nouveau champ', 'text', '')])],
+      sections: [section('Nouvelle catégorie', [field('Nouveau champ', 'text', '')])],
     }),
   },
   {
     id: 'd20',
     name: 'Aventurier (d20)',
-    description: 'Caracteristiques classiques, etat, competences et equipement.',
+    description: 'Caractéristiques classiques, état, compétences et équipement.',
     icon: '⚔️',
     build: () => ({
-      system: 'Systeme d20',
+      system: 'Système d20',
       sections: [
-        section('Caracteristiques', [
+        section('Caractéristiques', [
           stat('Force', 10),
-          stat('Dexterite', 10),
+          stat('Dextérité', 10),
           stat('Constitution', 10),
           stat('Intelligence', 10),
           stat('Sagesse', 10),
           stat('Charisme', 10),
         ]),
-        section('Etat', [
+        section('État', [
           field('Points de vie', 'number', 10, { useAsModifier: false }),
           field('PV maximum', 'number', 10, { useAsModifier: false }),
           bonus('Classe d’armure', 12),
@@ -68,13 +68,13 @@ export const TEMPLATES = [
           field('Vitesse', 'text', '9 m'),
           field('Niveau', 'number', 1, { useAsModifier: false }),
         ]),
-        section('Competences', [
-          bonus('Bonus de maitrise', 2),
-          bonus('Discretion', 0),
+        section('Compétences', [
+          bonus('Bonus de maîtrise', 2),
+          bonus('Discrétion', 0),
           bonus('Perception', 0),
-          bonus('Athletisme', 0),
+          bonus('Athlétisme', 0),
         ]),
-        section('Equipement', [field('Sac', 'longtext', ''), field('Bourse', 'text', '0 po')]),
+        section('Équipement', [field('Sac', 'longtext', ''), field('Bourse', 'text', '0 po')]),
         section('Traits', [
           field('Race', 'text', ''),
           field('Classe', 'text', ''),
@@ -85,7 +85,7 @@ export const TEMPLATES = [
   },
   {
     id: 'narratif',
-    name: 'Heros narratif',
+    name: 'Héros narratif',
     description: 'Approches, aspects et consequences pour les jeux narratifs.',
     icon: '🎭',
     build: () => ({
@@ -93,7 +93,7 @@ export const TEMPLATES = [
       sections: [
         section('Concept', [
           field('Haut concept', 'text', ''),
-          field('Probleme', 'text', ''),
+          field('Problème', 'text', ''),
           field('Points de destin', 'number', 3, { useAsModifier: false }),
         ]),
         section('Approches', [
@@ -105,9 +105,9 @@ export const TEMPLATES = [
           bonus('Panache', 3),
         ]),
         section('Aspects', [field('Aspects', 'longtext', '')]),
-        section('Consequences', [
-          field('Legere', 'text', ''),
-          field('Moderee', 'text', ''),
+        section('Conséquences', [
+          field('Légère', 'text', ''),
+          field('Modérée', 'text', ''),
           field('Grave', 'text', ''),
           field('Hors combat', 'checkbox', false),
         ]),
@@ -136,7 +136,7 @@ export function createJournalEntry(overrides = {}) {
   const now = Date.now();
   return {
     id: uid('entry'),
-    title: 'Nouvelle seance',
+    title: 'Nouvelle séance',
     chapter: '',
     date: new Date().toISOString().slice(0, 10),
     content: '',

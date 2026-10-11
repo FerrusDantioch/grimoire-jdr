@@ -165,7 +165,10 @@ export function PlayerProvider({ children }) {
       }
     };
     const onEnded = () => {
-      if (repeat === 'one') {
+      // « Repeter la file » sur une file d'une seule piste revient a repeter
+      // la piste : l'index ne changerait pas, la source non plus, et la
+      // lecture s'arreterait.
+      if (repeat === 'one' || (repeat === 'all' && queue.length === 1)) {
         audio.currentTime = 0;
         audio.play().catch(() => {});
         return;
@@ -197,7 +200,7 @@ export function PlayerProvider({ children }) {
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('error', onError);
     };
-  }, [current, repeat, goNext, updateTrack, toast]);
+  }, [current, repeat, queue.length, goNext, updateTrack, toast]);
 
   /* ---------- commandes ---------- */
   const play = useCallback(() => {
@@ -230,7 +233,7 @@ export function PlayerProvider({ children }) {
     (trackIds, { startId = null, label = 'Toutes les pistes' } = {}) => {
       const ids = trackIds.filter((id) => trackById.has(id));
       if (!ids.length) {
-        toast('Aucune piste jouable dans cette selection.', 'err');
+        toast('Aucune piste jouable dans cette sélection.', 'err');
         return;
       }
       const start = startId ? Math.max(0, ids.indexOf(startId)) : 0;
@@ -244,12 +247,19 @@ export function PlayerProvider({ children }) {
     [trackById, toast]
   );
 
-  // Une piste supprimee doit sortir de la file.
+  // Une piste supprimee doit sortir de la file. L'index est recalcule pour
+  // rester sur la piste en cours : supprimer une piste placee avant elle
+  // faisait sinon sauter la lecture a une autre piste, voire l'arretait
+  // (et masquait le lecteur) quand la piste en cours etait la derniere.
   useEffect(() => {
-    setQueue((q) => {
-      const filtered = q.filter((id) => trackById.has(id));
-      return filtered.length === q.length ? q : filtered;
-    });
+    if (queue.every((id) => trackById.has(id))) return;
+    const kept = queue.filter((id) => trackById.has(id));
+    const stillThere = kept.indexOf(currentId);
+    setQueue(kept);
+    if (!kept.length) setIndex(-1);
+    else if (stillThere >= 0) setIndex(stillThere);
+    else if (index >= 0) setIndex(Math.min(index, kept.length - 1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackById]);
 
   /* ---------- Media Session (ecran de verrouillage) ---------- */
