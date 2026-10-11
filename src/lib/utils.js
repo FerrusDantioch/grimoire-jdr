@@ -7,14 +7,26 @@ export function clamp(value, min, max) {
 }
 
 export function debounce(fn, delay = 400) {
-  let timer;
+  let timer = null;
   const wrapped = (...args) => {
     clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
+    timer = setTimeout(() => {
+      timer = null;
+      fn(...args);
+    }, delay);
   };
-  wrapped.cancel = () => clearTimeout(timer);
-  wrapped.flush = (...args) => {
+  wrapped.cancel = () => {
     clearTimeout(timer);
+    timer = null;
+  };
+  // N'execute `fn` que si un appel est encore en attente. Sans cette garde,
+  // fermer un editeur sans rien modifier reenregistrait l'element (et changeait
+  // sa date), et fermer l'editeur juste apres une suppression ressuscitait
+  // l'element supprime.
+  wrapped.flush = (...args) => {
+    if (timer === null) return;
+    clearTimeout(timer);
+    timer = null;
     fn(...args);
   };
   return wrapped;
@@ -23,15 +35,29 @@ export function debounce(fn, delay = 400) {
 const DATE_FMT = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const TIME_FMT = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
+/**
+ * Accepte un horodatage ou une date « AAAA-MM-JJ » (champ date du journal).
+ * `new Date('2026-10-11')` lirait cette chaine comme minuit UTC, soit la
+ * veille au soir dans les fuseaux a l'ouest de Greenwich (Antilles, Guyane,
+ * Polynesie…) : on la construit donc en heure locale.
+ */
+function toDate(value) {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(value);
+}
+
 export function formatDate(ts) {
   if (!ts) return '';
-  return DATE_FMT.format(new Date(ts));
+  return DATE_FMT.format(toDate(ts));
 }
 
 export function formatDateTime(ts) {
   if (!ts) return '';
   const d = new Date(ts);
-  return `${DATE_FMT.format(d)} a ${TIME_FMT.format(d)}`;
+  return `${DATE_FMT.format(d)} à ${TIME_FMT.format(d)}`;
 }
 
 export function formatTime(ts) {
@@ -44,7 +70,7 @@ export function formatRelative(ts) {
   if (!ts) return '';
   const diff = Date.now() - ts;
   const min = Math.round(diff / 60000);
-  if (min < 1) return "a l'instant";
+  if (min < 1) return "à l'instant";
   if (min < 60) return `il y a ${min} min`;
   const hours = Math.round(min / 60);
   if (hours < 24) return `il y a ${hours} h`;
@@ -64,7 +90,7 @@ export function formatBytes(bytes) {
     value /= 1024;
     i++;
   }
-  return `${value.toFixed(value < 10 ? 1 : 0)} ${units[i]}`;
+  return `${value.toFixed(value < 10 ? 1 : 0).replace('.', ',')} ${units[i]}`;
 }
 
 /** Secondes -> « 3:07 » */
@@ -106,35 +132,33 @@ export function downloadText(text, filename, mime = 'text/plain;charset=utf-8') 
   downloadBlob(new Blob([text], { type: mime }), filename);
 }
 
-/** Ouvre un selecteur de fichiers et resout avec la liste choisie. */
+/**
+ * Ouvre un selecteur de fichiers et resout avec la liste choisie (liste vide
+ * si l'utilisateur annule).
+ *
+ * On ne se fie pas au retour du focus sur la fenetre pour detecter
+ * l'annulation : sur Android, ce focus revient AVANT l'evenement `change`
+ * quand le fichier est gros ou stocke dans le cloud (il est d'abord copie),
+ * et l'import etait alors perdu sans message. L'evenement `cancel` des
+ * navigateurs recents suffit ; ailleurs, le champ cache est simplement
+ * nettoye a l'ouverture suivante.
+ */
 export function pickFiles({ accept = '*/*', multiple = false } = {}) {
+  document.querySelectorAll('input[data-file-picker]').forEach((old) => old.remove());
   return new Promise((resolve) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = accept;
     input.multiple = multiple;
     input.style.display = 'none';
+    input.dataset.filePicker = '';
     document.body.appendChild(input);
-    input.addEventListener(
-      'change',
-      () => {
-        const files = Array.from(input.files || []);
-        input.remove();
-        resolve(files);
-      },
-      { once: true }
-    );
-    // Si l'utilisateur annule, on nettoie au retour de focus.
-    window.addEventListener(
-      'focus',
-      () => setTimeout(() => {
-        if (document.body.contains(input)) {
-          input.remove();
-          resolve([]);
-        }
-      }, 400),
-      { once: true }
-    );
+    const done = (files) => {
+      input.remove();
+      resolve(files);
+    };
+    input.addEventListener('change', () => done(Array.from(input.files || [])), { once: true });
+    input.addEventListener('cancel', () => done([]), { once: true });
     input.click();
   });
 }

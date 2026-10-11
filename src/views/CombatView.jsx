@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
 import { debounce, formatRelative, uid } from '../lib/utils.js';
+import { formatBreakdown, rollExpression, statToModifier } from '../lib/dice.js';
 import Icon from '../components/Icon.jsx';
 import { ConfirmDialog } from '../components/Modal.jsx';
 import './combat.css';
 
-/** Combatant type : initiative numerique, PV optionnels, note libre (etats). */
+/**
+ * Combatant type : initiative (le score de l'ordre de jeu), bonus d'initiative
+ * (ajoute au 1d20 quand l'initiative est tiree), PV optionnels, note libre.
+ */
 const newCombatant = (overrides = {}) => ({
   id: uid('cb'),
   name: '',
   initiative: 10,
+  initBonus: 0,
   hp: null,
   hpMax: null,
   note: '',
@@ -31,13 +36,23 @@ export function createEncounter(overrides = {}) {
   };
 }
 
+/** Tire 1d20 + bonus d'initiative. Le jet n'entre pas dans l'historique des des. */
+function rollInitiative(bonus) {
+  return rollExpression('1d20', { modifiers: [{ label: 'Initiative', value: Number(bonus) || 0 }] });
+}
+
+const signed = (n) => (n >= 0 ? `+${n}` : `${n}`);
+
 /**
- * Detecte initiative et points de vie dans une fiche, a partir des noms de
- * champs (« Initiative », « Points de vie », « PV maximum »…). Tout reste
- * modifiable ensuite dans le tracker.
+ * Detecte le bonus d'initiative et les points de vie dans une fiche, a partir
+ * des noms de champs (« Initiative », « Points de vie », « PV maximum »…).
+ * Sans champ « Initiative », le modificateur de Dexterite (ou d'Agilite) sert
+ * de bonus, s'il est marque utilisable comme modificateur. L'initiative est
+ * ensuite tiree (1d20 + bonus) ; tout reste modifiable dans le tracker.
  */
 function combatantFromCharacter(character) {
-  let initiative = 10;
+  let initBonus = null;
+  let dexBonus = null;
   let hp = null;
   let hpMax = null;
   for (const section of character.sections || []) {
@@ -46,20 +61,27 @@ function combatantFromCharacter(character) {
       const label = String(field.label || '').toLowerCase();
       const value = Number(field.value);
       if (!Number.isFinite(value)) continue;
-      if (/init/.test(label)) initiative = value;
-      else if (/max/.test(label) && /(vie|pv|hp)/.test(label)) hpMax = value;
+      if (/init/.test(label)) {
+        initBonus = field.useAsModifier ? statToModifier(field.value, field.modMode) : Math.trunc(value);
+      } else if (/(dext|agil)/.test(label) && field.useAsModifier && dexBonus === null) {
+        dexBonus = statToModifier(field.value, field.modMode);
+      } else if (/max/.test(label) && /(vie|pv|hp)/.test(label)) hpMax = value;
       else if (/(point.*vie|^pv$|^pv\b|^hp$|^hp\b|vie)/.test(label) && hp === null) hp = value;
     }
   }
   if (hp !== null && hpMax === null) hpMax = hp;
   if (hp === null && hpMax !== null) hp = hpMax;
-  return newCombatant({
+  const bonus = initBonus ?? dexBonus ?? 0;
+  const roll = rollInitiative(bonus);
+  const combatant = newCombatant({
     name: character.name || 'Sans nom',
-    initiative,
+    initiative: roll.total,
+    initBonus: bonus,
     hp,
     hpMax,
     characterId: character.id,
   });
+  return { combatant, roll };
 }
 
 /* =========================================================
@@ -70,8 +92,9 @@ function Tracker({ encounter, onBack }) {
   const { saveEncounter, deleteEncounter, characters, toast } = useApp();
 
   const [draft, setDraft] = useState(encounter);
-  const [form, setForm] = useState({ name: '', initiative: '', hp: '' });
+  const [form, setForm] = useState({ name: '', bonus: '', hp: '' });
   const [confirmFinish, setConfirmFinish] = useState(false);
+  const [confirmReroll, setConfirmReroll] = useState(false);
   const draftRef = useRef(draft);
   draftRef.current = draft;
 
@@ -98,9 +121,14 @@ function Tracker({ encounter, onBack }) {
 
   useEffect(() => () => persist.flush(draftRef.current), [persist]);
 
-  /* Ordre de jeu : initiative decroissante. */
+  /* Ordre de jeu : initiative decroissante ; a egalite, le meilleur bonus
+     d'initiative joue d'abord, puis l'ordre alphabetique. */
   const sorted = useMemo(
-    () => [...draft.combatants].sort((a, b) => b.initiative - a.initiative || a.name.localeCompare(b.name)),
+    () =>
+      [...draft.combatants].sort(
+        (a, b) =>
+          b.initiative - a.initiative || (b.initBonus || 0) - (a.initBonus || 0) || a.name.localeCompare(b.name)
+      ),
     [draft.combatants]
   );
 
@@ -184,32 +212,49 @@ function Tracker({ encounter, onBack }) {
   const addFromForm = useCallback(() => {
     const name = form.name.trim();
     if (!name) return;
-    const initiative = Number(form.initiative);
+    const initBonus = Math.trunc(Number(form.bonus)) || 0;
     const hp = form.hp === '' ? null : Math.max(0, Number(form.hp) || 0);
+    const roll = rollInitiative(initBonus);
     update((current) => ({
       ...current,
       combatants: [
         ...current.combatants,
-        newCombatant({
-          name,
-          initiative: Number.isFinite(initiative) && form.initiative !== '' ? initiative : 10,
-          hp,
-          hpMax: hp,
-        }),
+        newCombatant({ name, initiative: roll.total, initBonus, hp, hpMax: hp }),
       ],
     }));
-    setForm({ name: '', initiative: '', hp: '' });
-  }, [form, update]);
+    setForm({ name: '', bonus: '', hp: '' });
+    toast(`${name} : ${formatBreakdown(roll)}`, 'ok', 3600);
+  }, [form, update, toast]);
 
   const addCharacter = useCallback(
     (character) => {
+      const { combatant, roll } = combatantFromCharacter(character);
       update((current) => ({
         ...current,
-        combatants: [...current.combatants, combatantFromCharacter(character)],
+        combatants: [...current.combatants, combatant],
       }));
+      toast(`${combatant.name} : ${formatBreakdown(roll)}`, 'ok', 3600);
     },
-    [update]
+    [update, toast]
   );
+
+  /** Nouveau tirage pour tous (1d20 + bonus), et le combat repart du debut. */
+  const rerollAll = useCallback(() => {
+    update((current) => ({
+      ...current,
+      turnId: null,
+      round: 1,
+      combatants: current.combatants.map((c) => ({ ...c, initiative: rollInitiative(c.initBonus).total })),
+    }));
+    toast('Initiative tirée pour tous les combattants.', 'ok');
+  }, [update, toast]);
+
+  // En plein combat, un appui de travers melangerait l'ordre et remettrait le
+  // round a 1 : on demande confirmation. Avant le premier tour, on tire direct.
+  const askReroll = () => {
+    if (draft.turnId || draft.round > 1) setConfirmReroll(true);
+    else rerollAll();
+  };
 
   const notInFight = useMemo(
     () => characters.filter((c) => !draft.combatants.some((cb) => cb.characterId === c.id)),
@@ -262,6 +307,17 @@ function Tracker({ encounter, onBack }) {
         <button
           type="button"
           className="btn btn--ghost btn--sm"
+          onClick={askReroll}
+          disabled={!sorted.length}
+          aria-label="Tirer l'initiative pour tous"
+          title="Tirer l'initiative pour tous (1d20 + bonus)"
+        >
+          <Icon name="dice" size={14} />
+          <span className="hide-xs">Initiative</span>
+        </button>
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
           onClick={resetFight}
           disabled={!sorted.length}
           title="Réinitialiser les tours et les PV"
@@ -302,7 +358,10 @@ function Tracker({ encounter, onBack }) {
                       placeholder="Nom"
                       aria-label="Nom du combatant"
                     />
-                    <label className="combatant__init" title="Initiative">
+                    <label
+                      className="combatant__init"
+                      title={`Initiative (bonus ${signed(c.initBonus || 0)})`}
+                    >
                       <Icon name="dice" size={13} />
                       <input
                         type="number"
@@ -310,6 +369,7 @@ function Tracker({ encounter, onBack }) {
                         onChange={(e) => patchCombatant(c.id, { initiative: Number(e.target.value) || 0 })}
                         aria-label={`Initiative de ${c.name || 'combatant'}`}
                       />
+                      {c.initBonus ? <span className="combatant__bonus">{signed(c.initBonus)}</span> : null}
                     </label>
                     <button
                       type="button"
@@ -383,11 +443,12 @@ function Tracker({ encounter, onBack }) {
           <input
             className="input combat__addnum"
             type="number"
-            value={form.initiative}
-            onChange={(e) => setForm({ ...form, initiative: e.target.value })}
+            inputMode="numeric"
+            value={form.bonus}
+            onChange={(e) => setForm({ ...form, bonus: e.target.value })}
             onKeyDown={(e) => e.key === 'Enter' && addFromForm()}
-            placeholder="Init."
-            aria-label="Initiative"
+            placeholder="Bonus init."
+            aria-label="Bonus d'initiative"
           />
           <input
             className="input combat__addnum"
@@ -395,6 +456,7 @@ function Tracker({ encounter, onBack }) {
             value={form.hp}
             onChange={(e) => setForm({ ...form, hp: e.target.value })}
             onKeyDown={(e) => e.key === 'Enter' && addFromForm()}
+            inputMode="numeric"
             placeholder="PV"
             aria-label="Points de vie"
           />
@@ -403,6 +465,9 @@ function Tracker({ encounter, onBack }) {
             <span className="hide-xs">Ajouter</span>
           </button>
         </div>
+        <p className="small muted combat__hint">
+          L’initiative est tirée automatiquement (1d20 + bonus) ; vous pouvez la corriger dans la liste.
+        </p>
 
         {notInFight.length > 0 && (
           <div style={{ marginTop: 12 }}>
@@ -418,6 +483,16 @@ function Tracker({ encounter, onBack }) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmReroll}
+        title="Relancer l'initiative ?"
+        message="Chaque combattant tire 1d20 + son bonus d'initiative et le combat repart du round 1. Les points de vie ne changent pas."
+        confirmLabel="Relancer"
+        danger={false}
+        onConfirm={rerollAll}
+        onClose={() => setConfirmReroll(false)}
+      />
 
       <ConfirmDialog
         open={confirmFinish}

@@ -20,7 +20,7 @@ export default defineConfig({
         name: 'Grimoire — Compagnon JDR',
         short_name: 'Grimoire',
         description:
-          "Fiches de personnage, journal d'aventure, visionneuse PDF, lanceur de des et lecteur de musique. Fonctionne hors ligne.",
+          "Fiches de personnage, journal d'aventure, visionneuse PDF, lanceur de dés et lecteur de musique. Fonctionne hors ligne.",
         lang: 'fr',
         dir: 'ltr',
         start_url: base,
@@ -63,10 +63,16 @@ export default defineConfig({
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
       output: {
-        manualChunks: {
-          pdfjs: ['pdfjs-dist'],
-          jspdf: ['jspdf'],
-          react: ['react', 'react-dom']
+        // Seul React a un paquet impose. jsPDF et pdf.js sont deja importes a
+        // la demande (import()) : Rollup leur donne leur propre paquet. Les
+        // forcer ici rangeait aussi dans le paquet jsPDF le petit assistant de
+        // chargement de Vite (jsPDF fait lui-meme des imports dynamiques), et
+        // dans le paquet pdf.js l'adresse du worker : le paquet principal en
+        // avait besoin et chargeait donc jsPDF et pdf.js (~220 Ko compresses)
+        // des le demarrage, alors qu'ils ne servent qu'a l'export et aux PDF.
+        manualChunks(id) {
+          if (/\/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'react';
+          return undefined;
         }
       }
     }
