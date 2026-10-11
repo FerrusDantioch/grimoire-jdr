@@ -117,7 +117,12 @@ function JournalEditor({ entry, onBack }) {
     setExporting(true);
     try {
       persist.flush(draftRef.current);
-      const entries = exportScope === 'all' ? journal : [draftRef.current];
+      // La sauvegarde est asynchrone : `journal` peut encore contenir l'ancienne
+      // version de la seance ouverte, on y substitue donc le brouillon.
+      const entries =
+        exportScope === 'all'
+          ? journal.map((e) => (e.id === draftRef.current.id ? draftRef.current : e))
+          : [draftRef.current];
       await exportJournal(entries, format, { characterNames, title: "Journal d'aventure" });
       toast(`Journal exporté en ${format.toUpperCase()}.`, 'ok');
       setExportOpen(false);
@@ -151,7 +156,7 @@ function JournalEditor({ entry, onBack }) {
           onClick={() => setPreview((p) => !p)}
         >
           <Icon name="eye" />
-          {preview ? 'Editer' : 'Aperçu'}
+          {preview ? 'Éditer' : 'Aperçu'}
         </button>
         <button type="button" className="btn btn--sm" onClick={() => setExportOpen(true)}>
           <Icon name="download" />
@@ -204,7 +209,7 @@ function JournalEditor({ entry, onBack }) {
 
         {characters.length > 0 && (
           <div>
-            <span className="label">Personnages presents</span>
+            <span className="label">Personnages présents</span>
             <div className="row row--wrap">
               {characters.map((c) => (
                 <button
@@ -232,7 +237,7 @@ function JournalEditor({ entry, onBack }) {
             className="textarea journal-textarea"
             value={draft.content}
             onChange={(e) => update({ content: e.target.value })}
-            placeholder={'Ce qui s’est passe cette séance…\n\n## Rencontres\n- Le passeur du gue\n\n> « Vous ne passerez pas sans peage. »'}
+            placeholder={'Ce qui s’est passé cette séance…\n\n## Rencontres\n- Le passeur du gué\n\n> « Vous ne passerez pas sans péage. »'}
             aria-label="Contenu de la séance"
           />
         </div>
@@ -378,12 +383,12 @@ export default function JournalView({ openId, setOpenId }) {
           <p className="small">
             {journal.length
               ? 'Aucune séance ne correspond à cette recherche.'
-              : 'Consignez vos séances, regroupees par chapitre.'}
+              : 'Consignez vos séances, regroupées par chapitre.'}
           </p>
           {!journal.length && (
             <button type="button" className="btn btn--primary" onClick={create} style={{ marginTop: 12 }}>
               <Icon name="plus" />
-              Premiere séance
+              Première séance
             </button>
           )}
         </div>
@@ -420,7 +425,7 @@ export default function JournalView({ openId, setOpenId }) {
         open={exportAllOpen}
         onClose={() => setExportAllOpen(false)}
         title="Exporter tout le journal"
-        subtitle={`${journal.length} séance(s) seront regroupees dans un seul fichier.`}
+        subtitle={`${journal.length} séance(s) seront regroupées dans un seul fichier.`}
         onExport={handleExportAll}
         busy={exporting}
       />

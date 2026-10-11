@@ -35,7 +35,7 @@ export function parseExpression(input) {
   const cleaned = String(input ?? '').toLowerCase().replace(/\s+/g, '').replace(/[−–—]/g, '-');
   if (!cleaned) throw new Error('Expression vide.');
   if (!/^[-+]?[0-9dkhl+-]+$/.test(cleaned)) {
-    throw new Error('Caracteres non valides. Exemple attendu : 2d6+3');
+    throw new Error('Caractères non valides. Exemple attendu : 2d6+3');
   }
 
   const chunks = cleaned.match(/[+-]?[^+-]+/g);
@@ -63,12 +63,12 @@ export function parseExpression(input) {
     const keepMode = match[3] || null;
     const keepCount = match[4] ? Number(match[4]) : null;
 
-    if (count < 1) throw new Error('Il faut au moins 1 de.');
-    if (count > MAX_COUNT) throw new Error(`Maximum ${MAX_COUNT} des par terme.`);
-    if (sides < 2) throw new Error('Un de doit avoir au moins 2 faces.');
+    if (count < 1) throw new Error('Il faut au moins 1 dé.');
+    if (count > MAX_COUNT) throw new Error(`Maximum ${MAX_COUNT} dés par terme.`);
+    if (sides < 2) throw new Error('Un dé doit avoir au moins 2 faces.');
     if (sides > MAX_SIDES) throw new Error(`Maximum ${MAX_SIDES} faces.`);
     if (keepMode && (keepCount < 1 || keepCount > count)) {
-      throw new Error(`« ${keepMode}${keepCount} » impossible avec ${count} de(s).`);
+      throw new Error(`« ${keepMode}${keepCount} » impossible avec ${count} dé(s).`);
     }
 
     return {
@@ -203,6 +203,6 @@ export function statToModifier(rawValue, mode = 'raw') {
 }
 
 export const MOD_MODES = [
-  { id: 'raw', label: 'Valeur brute', hint: 'La valeur est ajoutee telle quelle (ex. +3)' },
+  { id: 'raw', label: 'Valeur brute', hint: 'La valeur est ajoutée telle quelle (ex. +3)' },
   { id: 'dnd', label: 'Modificateur d20', hint: '(valeur - 10) / 2, arrondi vers le bas' },
 ];

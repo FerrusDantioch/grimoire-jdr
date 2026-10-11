@@ -91,13 +91,13 @@ export default function CharactersView({ openId, setOpenId }) {
                   <span className="char-card__meta small muted">
                     {character.system && <span>{character.system}</span>}
                     {character.role && <span>· {character.role}</span>}
-                    <span>· {character.sections.length} categories</span>
+                    <span>· {character.sections.length} catégories</span>
                     <span>· {fieldCount} champs</span>
                     {activeCharacterId === character.id && (
-                      <span className="char-card__active">Des actifs</span>
+                      <span className="char-card__active">Dés actifs</span>
                     )}
                   </span>
-                  <span className="small muted">Modifie {formatRelative(character.updatedAt)}</span>
+                  <span className="small muted">Modifiée {formatRelative(character.updatedAt)}</span>
                 </span>
                 <Icon name="chevronRight" className="muted" />
               </button>
@@ -108,7 +108,7 @@ export default function CharactersView({ openId, setOpenId }) {
 
       <Modal open={newOpen} onClose={() => setNewOpen(false)} title="Nouvelle fiche">
         <p className="small muted" style={{ marginTop: 0 }}>
-          Un modèle sert de point de depart : tout reste renommable, deplacable et supprimable ensuite.
+          Un modèle sert de point de départ : tout reste renommable, déplaçable et supprimable ensuite.
         </p>
         <div className="template-list">
           {TEMPLATES.map((t) => (

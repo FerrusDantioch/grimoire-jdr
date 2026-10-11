@@ -169,7 +169,7 @@ function FieldRow({ field, onChange, onRemove, onMove, onRoll, isFirst, isLast }
                 onChange={(e) =>
                   onChange({ options: e.target.value.split('\n').map((o) => o.trim()).filter(Boolean) })
                 }
-                placeholder={'Novice\nAguerri\nMaitre'}
+                placeholder={'Novice\nAguerri\nMaître'}
               />
             </label>
           )}
@@ -394,7 +394,7 @@ export default function CharacterEditor({ character, onBack }) {
           <Icon name="dice" size={16} />
           {modifierCount > 0
             ? `${modifierCount} caractéristique${modifierCount > 1 ? 's' : ''} disponible${modifierCount > 1 ? 's' : ''} comme modificateur — ouvrir les dés`
-            : 'Aucun modificateur : activez l’option sur un champ numerique'}
+            : 'Aucun modificateur : activez l’option sur un champ numérique'}
         </button>
       </div>
 
@@ -408,7 +408,7 @@ export default function CharacterEditor({ character, onBack }) {
                 className="btn btn--ghost btn--icon btn--sm"
                 onClick={() => setCollapsed((c) => ({ ...c, [section.id]: !c[section.id] }))}
                 aria-expanded={!isCollapsed}
-                aria-label={isCollapsed ? 'Deplier la catégorie' : 'Replier la catégorie'}
+                aria-label={isCollapsed ? 'Déplier la catégorie' : 'Replier la catégorie'}
               >
                 <Icon name={isCollapsed ? 'chevronRight' : 'chevronDown'} />
               </button>
@@ -484,7 +484,7 @@ export default function CharacterEditor({ character, onBack }) {
           rows={5}
           value={draft.notes || ''}
           onChange={(e) => update({ notes: e.target.value })}
-          placeholder="Historique, contacts, objectifs… (markdown accepte)"
+          placeholder="Historique, contacts, objectifs… (markdown accepté)"
         />
       </section>
 
@@ -492,7 +492,7 @@ export default function CharacterEditor({ character, onBack }) {
         open={exportOpen}
         onClose={() => setExportOpen(false)}
         title={`Exporter « ${draft.name} »`}
-        subtitle="Choisissez le format du fichier a telecharger."
+        subtitle="Choisissez le format du fichier à télécharger."
         onExport={handleExport}
         busy={exporting}
       />

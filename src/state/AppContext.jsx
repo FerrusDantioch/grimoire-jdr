@@ -74,8 +74,11 @@ export function AppProvider({ children }) {
   /* ---------- theme ---------- */
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'grimoire' ? '#141019' : '#f3ead8');
+    // index.html declare deux balises (systeme sombre / systeme clair) : il faut
+    // les mettre a jour toutes les deux, sinon un telephone en mode clair garde
+    // une barre beige au-dessus du theme sombre de l'application.
+    const color = theme === 'grimoire' ? '#141019' : '#f3ead8';
+    document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute('content', color));
   }, [theme]);
 
   const changeTheme = useCallback((next) => {

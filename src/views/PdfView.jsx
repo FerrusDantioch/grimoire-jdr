@@ -189,9 +189,11 @@ function PdfViewer({ doc, onBack }) {
   useEffect(() => {
     const onKey = (e) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      if (e.key === 'Escape' && battlemap) exitBattlemap();
+      // Document encore en chargement : aucune page ou aller.
+      if (!numPages) return;
       if (e.key === 'ArrowRight' || e.key === 'PageDown') setPage((p) => clamp(p + 1, 1, numPages));
       if (e.key === 'ArrowLeft' || e.key === 'PageUp') setPage((p) => clamp(p - 1, 1, numPages));
-      if (e.key === 'Escape' && battlemap) exitBattlemap();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -266,7 +268,7 @@ function PdfViewer({ doc, onBack }) {
             className="btn btn--sm btn--icon"
             onClick={() => setPage((p) => clamp(p - 1, 1, numPages))}
             disabled={page <= 1}
-            aria-label="Page precedente"
+            aria-label="Page précédente"
           >
             <Icon name="chevronLeft" />
           </button>
@@ -294,7 +296,7 @@ function PdfViewer({ doc, onBack }) {
         </div>
 
         <div className="pdf__tools">
-          <button type="button" className="btn btn--sm btn--icon" onClick={() => zoom(-0.25)} aria-label="Dezoomer">
+          <button type="button" className="btn btn--sm btn--icon" onClick={() => zoom(-0.25)} aria-label="Dézoomer">
             <Icon name="zoomOut" />
           </button>
           <button
@@ -303,7 +305,7 @@ function PdfViewer({ doc, onBack }) {
             onClick={() => setFitWidth((f) => !f)}
             title="Ajuster à la largeur"
           >
-            {fitWidth ? 'Ajuste' : `${Math.round(scale * 100)}%`}
+            {fitWidth ? 'Ajusté' : `${Math.round(scale * 100)}%`}
           </button>
           <button type="button" className="btn btn--sm btn--icon" onClick={() => zoom(0.25)} aria-label="Zoomer">
             <Icon name="zoomIn" />
@@ -345,7 +347,7 @@ function PdfViewer({ doc, onBack }) {
             />
           </label>
           <label className="field" style={{ margin: 0 }}>
-            <span className="label">Opacite : {Math.round(grid.opacity * 100)} %</span>
+            <span className="label">Opacité : {Math.round(grid.opacity * 100)} %</span>
             <input
               type="range"
               min={5}
@@ -440,7 +442,7 @@ export default function PdfView({ openId, setOpenId }) {
           <span className="empty__icon">🗺️</span>
           <h3>Aucun document</h3>
           <p className="small">
-            Importez vos règles, scenarios ou cartes en PDF. Ils restent stockes sur l’appareil et
+            Importez vos règles, scénarios ou cartes en PDF. Ils restent stockés sur l’appareil et
             fonctionnent hors ligne.
           </p>
           <button type="button" className="btn btn--primary" onClick={importPdf} style={{ marginTop: 12 }}>

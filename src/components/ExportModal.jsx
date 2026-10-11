@@ -7,13 +7,13 @@ const FORMATS = [
     id: 'pdf',
     label: 'PDF',
     icon: 'file',
-    hint: 'Mise en page soignee, prete a imprimer ou a partager.',
+    hint: 'Mise en page soignée, prête à imprimer ou à partager.',
   },
   {
     id: 'txt',
     label: 'Texte',
     icon: 'edit3',
-    hint: 'Fichier .txt structure, editable partout.',
+    hint: 'Fichier .txt structuré, modifiable partout.',
   },
 ];
 
@@ -36,7 +36,7 @@ export default function ExportModal({ open, onClose, title = 'Exporter', subtitl
           </button>
           <button type="button" className="btn btn--primary" onClick={() => onExport(format)} disabled={busy}>
             <Icon name="download" />
-            {busy ? 'Preparation…' : 'Telecharger'}
+            {busy ? 'Préparation…' : 'Télécharger'}
           </button>
         </>
       }
