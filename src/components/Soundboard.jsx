@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
-import * as db from '../lib/db.js';
+import { useAmbiance } from '../state/AmbianceContext.jsx';
 import { formatBytes, pickFiles } from '../lib/utils.js';
 import Icon from './Icon.jsx';
 import Modal, { ConfirmDialog } from './Modal.jsx';
@@ -10,99 +10,20 @@ const AUDIO_EXT = /\.(mp3|ogg|wav|m4a|flac|opus|aac)$/i;
 
 /**
  * Soundboard d'ambiances : chaque son est une pastille lecture/stop, avec
- * mode boucle, renommage et suppression. Les lecteurs audio sont crees a la
- * volee et gardes dans une Map (hors rendu React) ; les URL d'objet sont
- * revoquees au demontage.
+ * mode boucle, renommage et suppression. La lecture elle-meme est geree par
+ * AmbianceContext, au-dessus des vues : quitter cet onglet ne coupe rien.
  */
 export default function Soundboard() {
   const { sounds, addSounds, updateSound, deleteSound, toast } = useApp();
+  const { playingIds, volume, setVolume, toggle, stopAll } = useAmbiance();
 
-  const playersRef = useRef(new Map()); // id -> { audio, url }
-  const [playingIds, setPlayingIds] = useState(new Set());
   const [importing, setImporting] = useState(false);
-  const [volume, setVolume] = useState(0.9);
   const [renameTarget, setRenameTarget] = useState(null);
   const [renameValue, setRenameValue] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  /* Volume global persiste dans les reglages. */
-  useEffect(() => {
-    db.getSetting('sfxVolume', 0.9).then((v) => {
-      const num = Number(v);
-      if (Number.isFinite(num)) setVolume(Math.max(0, Math.min(1, num)));
-    });
-  }, []);
-
-  const changeVolume = useCallback((value) => {
-    const v = Math.max(0, Math.min(1, Number(value) || 0));
-    setVolume(v);
-    db.setSetting('sfxVolume', v).catch(() => {});
-    for (const { audio } of playersRef.current.values()) audio.volume = v;
-  }, []);
-
-  const getPlayer = useCallback(
-    (sound) => {
-      let player = playersRef.current.get(sound.id);
-      if (!player) {
-        const url = URL.createObjectURL(sound.blob);
-        const audio = new Audio(url);
-        audio.volume = volume;
-        audio.addEventListener('ended', () => {
-          setPlayingIds((set) => {
-            const next = new Set(set);
-            next.delete(sound.id);
-            return next;
-          });
-        });
-        player = { audio, url };
-        playersRef.current.set(sound.id, player);
-      }
-      return player;
-    },
-    [volume]
-  );
-
-  const toggle = useCallback(
-    (sound) => {
-      const { audio } = getPlayer(sound);
-      if (playingIds.has(sound.id)) {
-        audio.pause();
-        audio.currentTime = 0;
-        setPlayingIds((set) => {
-          const next = new Set(set);
-          next.delete(sound.id);
-          return next;
-        });
-      } else {
-        audio.loop = Boolean(sound.loop);
-        audio.currentTime = 0;
-        audio.play().then(() => {
-          setPlayingIds((set) => new Set(set).add(sound.id));
-        }).catch(() => {
-          toast('Lecture impossible pour ce fichier.', 'err');
-        });
-      }
-    },
-    [getPlayer, playingIds, toast]
-  );
-
-  const stopAll = useCallback(() => {
-    for (const { audio } of playersRef.current.values()) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
-    setPlayingIds(new Set());
-  }, []);
-
-  const toggleLoop = useCallback(
-    (sound) => {
-      const next = { ...sound, loop: !sound.loop };
-      updateSound(next);
-      const player = playersRef.current.get(sound.id);
-      if (player) player.audio.loop = next.loop;
-    },
-    [updateSound]
-  );
+  // Le lecteur suit la nouvelle valeur `loop` via la liste des sons.
+  const toggleLoop = useCallback((sound) => updateSound({ ...sound, loop: !sound.loop }), [updateSound]);
 
   const importSounds = useCallback(async () => {
     const files = await pickFiles({ accept: AUDIO_ACCEPT, multiple: true });
@@ -130,31 +51,6 @@ export default function Soundboard() {
     setRenameTarget(null);
   }, [renameTarget, renameValue, updateSound]);
 
-  /* Supprime les lecteurs des sons qui n'existent plus. */
-  useEffect(() => {
-    const ids = new Set(sounds.map((s) => s.id));
-    for (const [id, player] of playersRef.current) {
-      if (!ids.has(id)) {
-        player.audio.pause();
-        URL.revokeObjectURL(player.url);
-        playersRef.current.delete(id);
-      }
-    }
-    setPlayingIds((set) => new Set([...set].filter((id) => ids.has(id))));
-  }, [sounds]);
-
-  /* Nettoyage au demontage. */
-  useEffect(() => {
-    const players = playersRef.current;
-    return () => {
-      for (const player of players.values()) {
-        player.audio.pause();
-        URL.revokeObjectURL(player.url);
-      }
-      players.clear();
-    };
-  }, []);
-
   return (
     <div className="soundboard">
       <div className="soundboard__bar">
@@ -177,7 +73,7 @@ export default function Soundboard() {
             max={1}
             step={0.05}
             value={volume}
-            onChange={(e) => changeVolume(e.target.value)}
+            onChange={(e) => setVolume(e.target.value)}
             aria-label="Volume des ambiances"
           />
         </label>

@@ -1,5 +1,6 @@
 import { downloadBlob, downloadText, formatDate, formatDateTime, safeFilename } from './utils.js';
 import { parseBlocks, markdownToPlainText, stripInline } from './markdown.js';
+import { characterToFile } from './characterFile.js';
 
 /* =========================================================
    Mise en page PDF partagee
@@ -407,6 +408,9 @@ export async function exportCharacter(character, format) {
   if (format === 'pdf') {
     const doc = await characterToPDF(character);
     downloadBlob(doc.output('blob'), `${base}.pdf`);
+  } else if (format === 'json') {
+    // Fiche reimportable dans Grimoire (bouton « Importer » des Personnages).
+    downloadText(JSON.stringify(characterToFile(character), null, 2), `${base}.json`, 'application/json');
   } else {
     downloadText(characterToText(character), `${base}.txt`);
   }

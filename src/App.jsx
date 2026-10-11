@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from './state/AppContext.jsx';
 import { useDice } from './state/DiceContext.jsx';
 import { usePlayer } from './state/PlayerContext.jsx';
+import { useAmbiance } from './state/AmbianceContext.jsx';
 import { useInstallPrompt } from './lib/usePwa.js';
 import CharactersView from './views/CharactersView.jsx';
 import JournalView from './views/JournalView.jsx';
@@ -27,6 +28,7 @@ export default function App() {
   const { ready, theme, changeTheme, activeCharacter } = useApp();
   const { roll, setPanelOpen } = useDice();
   const { current } = usePlayer();
+  const { playingCount: ambiances, stopAll: stopAmbiances } = useAmbiance();
   const { canInstall, installed, promptInstall } = useInstallPrompt();
 
   const [tab, setTab] = useState('characters');
@@ -94,6 +96,22 @@ export default function App() {
         )}
 
         <span className="topbar__spacer" />
+
+        {/* Les ambiances continuent sur tous les onglets : on montre qu'elles
+            jouent, et on peut les couper d'ici sans revenir a la Musique. */}
+        {ambiances > 0 && (
+          <button
+            type="button"
+            className="chip topbar__ambiance"
+            onClick={stopAmbiances}
+            aria-label={`Arrêter les ambiances (${ambiances} en cours)`}
+            title="Arrêter les ambiances"
+          >
+            <Icon name="volume" size={14} />
+            {ambiances}
+            <Icon name="x" size={13} />
+          </button>
+        )}
 
         {canInstall && !installed && (
           <button type="button" className="btn btn--sm btn--primary" onClick={promptInstall}>

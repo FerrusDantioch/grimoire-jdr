@@ -30,7 +30,7 @@ npm start
 | `npm run dev` | Serveur de développement (rechargement à chaud) sur http://localhost:5173 |
 | `npm run build` | Build de production dans `dist/` (manifeste + service worker) |
 | `npm run serve` | Sert `dist/` sans recompiler ni ouvrir le navigateur |
-| `npm test` | Tests du moteur de dés, du rendu markdown et de la sauvegarde différée (35 assertions) |
+| `npm test` | Tests du moteur de dés, du rendu markdown, de la sauvegarde différée et du partage de fiches (48 assertions) |
 | `npm run icons` | Régénère les icônes PNG de la PWA |
 
 ### Pourquoi un double-clic sur `index.html` donne une page blanche
@@ -81,6 +81,13 @@ sont que des points de départ — rien n'est figé.
 Sauvegarde automatique dans IndexedDB, 600 ms après la dernière frappe, et
 immédiate à la fermeture de la fiche.
 
+**Dupliquer, partager** — le bouton de copie de l'éditeur duplique la fiche
+(« Aldric (copie) ») et l'ouvre aussitôt. L'export au format **Fiche Grimoire**
+produit un petit fichier `.json` à envoyer au MJ ou à un autre joueur, qui le
+réimporte avec le bouton **Importer** de l'onglet Fiches. Une fiche importée
+reçoit toujours de nouveaux identifiants : elle n'écrase jamais une fiche
+existante, et son contenu est vérifié champ par champ.
+
 ### Lanceur de dés, lié aux fiches
 Bouton flottant présent sur **tous** les onglets, affichant le dernier résultat.
 Le panneau propose d4 à d100 avec compteur, une expression libre
@@ -110,21 +117,36 @@ regroupent par chapitre, portent une date et peuvent être liées à des
 personnages. Recherche plein texte, compteur de mots, export d'une séance ou du
 journal entier.
 
+Le bouton dé de la barre d'insertion propose les derniers jets du lanceur ; un
+tap insère le jet choisi à l'emplacement du curseur, sur sa propre ligne :
+
+```
+**Jet (Aldric, Force)** : 1d20 (17) + 3 (Force) = **20**
+```
+
 ### Tracker de combat
 Onglet **Combat** : préparez des rencontres à l'avance ou montez-les à table.
-Chaque combatant porte nom, initiative, points de vie (avec jauge) et une note
-libre pour les états (« empoisonné », « à terre »…). Les combattants se trient
-par initiative décroissante ; **Commencer** / **Tour suivant** font avancer le
+Chaque combatant porte nom, initiative, bonus d'initiative, points de vie (avec
+jauge) et une note libre pour les états (« empoisonné », « à terre »…).
+**L'initiative est tirée automatiquement** (`1d20 + bonus`) à l'ajout d'un
+combattant, et le bouton **Initiative** la retire pour tout le monde (avec
+confirmation si le combat a déjà commencé). Les combattants se trient par
+initiative décroissante, puis par bonus ; **Commencer** / **Tour suivant** font avancer le
 tour et incrémentent le round à chaque boucle. Boutons −1 / +1 / −5 / +5 sur
 les PV (bornés de 0 au maximum), réinitialisation complète en un clic, et
-import direct **depuis les fiches** : initiative et PV sont détectés d'après
-les noms de champs (« Initiative », « Points de vie », « PV maximum »…). À 0
+import direct **depuis les fiches** : bonus d'initiative et PV sont détectés
+d'après les noms de champs (« Initiative », « Points de vie », « PV maximum »… ;
+à défaut d'« Initiative », le modificateur de Dextérité ou d'Agilité). À 0
 PV, le combattant apparaît barré. Terminer un combat demande confirmation et le
 retire de la liste.
 
 ### Visionneuse PDF
 pdf.js intégré : navigation par page (clavier inclus), zoom, ajustement à la
-largeur, glisser-déposer pour se déplacer. Le **mode battlemap** passe en plein
+largeur, glisser-déposer pour se déplacer. **Zoom à deux doigts** sur écran
+tactile, et par pincement du pavé tactile ou Ctrl + molette sur ordinateur : le
+point visé reste sous les doigts. Aux très forts zooms, la finesse du rendu est
+plafonnée (16 millions de pixels) pour que la page ne reste jamais blanche sur
+téléphone. Le **mode battlemap** passe en plein
 écran avec une grille superposée dont la taille des cases et l'opacité sont
 réglables. Les documents importés sont stockés localement et la dernière page
 consultée est mémorisée.
@@ -142,7 +164,8 @@ ambiances (mp3, ogg, wav…) et déclenchez-les d'un tap sur des pastilles.
 Chaque pastille a son bouton lecture/stop, un mode **boucle** (pluie, feu de
 camp…), un renommage et une suppression ; un volume global dédié est mémorisé.
 Plusieurs ambiances peuvent jouer en même temps, indépendamment du lecteur de
-musique.
+musique. Comme la musique, **elles continuent quand on change d'onglet** : une
+pastille dans la barre du haut indique combien jouent et les arrête d'un tap.
 
 ### Export
 Modale de confirmation avec choix du format :
@@ -151,9 +174,14 @@ Modale de confirmation avec choix du format :
   champs sur deux colonnes pour les fiches ; titres, listes, citations et pied de
   page numéroté pour le journal.
 - **Texte** — `.txt` structuré, lisible et modifiable partout.
+- **Fiche Grimoire** (fiches uniquement) — `.json` réimportable dans Grimoire.
 
-Les réglages proposent en plus une **sauvegarde complète** en JSON (fiches,
-journal, PDF et musiques compris, encodés en data-URL) et sa restauration.
+Les réglages proposent en plus deux sauvegardes en JSON, et leur restauration :
+
+- **légère** — fiches, journal, combats, playlists et historique de dés, sans
+  les PDF ni les fichiers audio : quelques Ko, à faire souvent ;
+- **complète** — tout, PDF, musiques et ambiances compris (encodés en
+  data-URL) : le fichier peut être volumineux.
 
 ## Architecture
 
@@ -165,14 +193,16 @@ src/
 │   ├── db.js                IndexedDB (idb) : magasins, réglages, sauvegarde
 │   ├── dice.js              analyse d'expressions + tirage cryptographique
 │   ├── markdown.js          rendu markdown sûr (échappement avant transformation)
-│   ├── exporters.js         PDF (jsPDF) et texte
+│   ├── exporters.js         PDF (jsPDF), texte et fiche .json
+│   ├── characterFile.js     duplication, export et import d'une fiche seule
 │   ├── templates.js         modèles de fiches, fabriques de champs
 │   ├── utils.js             dates, tailles, fichiers, aides diverses
 │   └── usePwa.js            invite d'installation, état de connexion
 ├── state/
 │   ├── AppContext.jsx       données + CRUD + thème + notifications
 │   ├── DiceContext.jsx      jets, historique, modificateurs actifs
-│   └── PlayerContext.jsx    lecteur audio global + Media Session
+│   ├── PlayerContext.jsx    lecteur audio global + Media Session
+│   └── AmbianceContext.jsx  ambiances du soundboard, jouées sur tous les onglets
 ├── components/              Icon, Modal, ExportModal, DiceWidget,
 │                            CharacterEditor, MiniPlayer, Soundboard, Toasts
 ├── views/                   Personnages, Journal, Combat, Documents, Musique,
@@ -206,11 +236,13 @@ en compte. Deux thèmes, **grimoire** (sombre) et **parchemin** (clair).
 
 ## Vérifications effectuées
 
-- `npm test` : 35 assertions sur l'analyse d'expressions, les bornes de tirage,
+- `npm test` : 48 assertions sur l'analyse d'expressions, les bornes de tirage,
   `kh`/`kl`, les modificateurs, la détection des critiques, le rendu markdown,
   la neutralisation du HTML et des liens `javascript:`, la sauvegarde différée
-  des éditeurs (un élément supprimé ne doit jamais être réenregistré) et
-  l'affichage des dates du journal quel que soit le fuseau horaire.
+  des éditeurs (un élément supprimé ne doit jamais être réenregistré),
+  l'affichage des dates du journal quel que soit le fuseau horaire, la ligne
+  de jet insérée dans le journal, et la duplication / l'import de fiches
+  (identifiants neufs, fichier abîmé neutralisé).
 - Parcours manuel : création de fiche, modificateur Force 16 → +3 appliqué à un
   `1d20`, journal avec aperçu markdown, visionneuse PDF sur deux pages, mode
   battlemap avec grille, lecture audio avec enchaînement des pistes et barre

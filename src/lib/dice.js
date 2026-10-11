@@ -178,6 +178,19 @@ export function formatBreakdown(result) {
   return `${parts.join('')} = ${result.total}`;
 }
 
+/**
+ * Ligne markdown pour le journal :
+ * « **Jet (Aldric, Force)** : 1d20 (17) + 3 (Force) = **20** — réussite critique »
+ * Pas d'emoji : les polices de l'export PDF ne savent pas les dessiner.
+ */
+export function formatRollForJournal(result) {
+  const who = [result.characterName, result.label].filter(Boolean).join(', ');
+  const crit =
+    result.crit === 'critique' ? ' — réussite critique' : result.crit === 'echec' ? ' — échec critique' : '';
+  const detail = formatBreakdown(result).replace(/= (-?\d+)$/, '= **$1**');
+  return `**Jet${who ? ` (${who})` : ''}** : ${detail}${crit}`;
+}
+
 /** Version compacte pour l'historique : « 1d20 + 3 = 17 » */
 export function formatShort(result) {
   const mods = result.modifiers.reduce((a, m) => a + m.value, 0);

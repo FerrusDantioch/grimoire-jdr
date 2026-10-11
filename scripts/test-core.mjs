@@ -1,4 +1,6 @@
-import { parseExpression, rollExpression, formatBreakdown, statToModifier, validateExpression } from '../src/lib/dice.js';
+import {
+  parseExpression, rollExpression, formatBreakdown, formatRollForJournal, statToModifier, validateExpression,
+} from '../src/lib/dice.js';
 import { renderMarkdown, markdownToPlainText, wordCount } from '../src/lib/markdown.js';
 
 // Fuseau a l'ouest de Greenwich, pose AVANT de charger utils.js (ses formats de
@@ -6,6 +8,8 @@ import { renderMarkdown, markdownToPlainText, wordCount } from '../src/lib/markd
 // du journal ne se voit pas en UTC, fuseau des serveurs d'integration.
 process.env.TZ = 'Pacific/Tahiti';
 const { debounce, formatDate } = await import('../src/lib/utils.js');
+const { createCharacter } = await import('../src/lib/templates.js');
+const { cloneCharacter, characterToFile, characterFromFile } = await import('../src/lib/characterFile.js');
 
 let fail = 0;
 const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) fail++; };
@@ -86,6 +90,48 @@ ok(wordCount('un deux trois') === 3, 'compte de mots');
 
 // Une date « AAAA-MM-JJ » s'affiche au jour choisi, quel que soit le fuseau.
 ok(/^11 /.test(formatDate('2026-10-11')), `date du journal au bon jour : ${formatDate('2026-10-11')}`);
+
+// Jet insere dans le journal : rendu markdown en gras, sans emoji (export PDF).
+{
+  const line = formatRollForJournal(withMod);
+  ok(line.startsWith('**Jet (Aldric)** : 1d20 ('), `ligne de journal : ${line}`);
+  ok(line.endsWith(`= **${withMod.total}**`) || / — (réussite|échec) critique$/.test(line), 'total en gras');
+  ok(renderMarkdown(line).includes('<strong>Jet (Aldric)</strong>'), 'ligne de jet rendue en markdown');
+  ok(!/[\u{1F300}-\u{1FAFF}]/u.test(line), 'pas d’emoji dans la ligne de jet');
+}
+
+// Duplication et partage d'une fiche seule.
+{
+  const original = createCharacter('d20', 'Aldric');
+  const copy = cloneCharacter(original);
+  const ids = (c) => [c.id, ...c.sections.flatMap((s) => [s.id, ...s.fields.map((f) => f.id)])];
+  ok(copy.name === 'Aldric (copie)', 'copie nommee « (copie) »');
+  ok(!ids(copy).some((id) => ids(original).includes(id)), 'copie : tous les identifiants sont neufs');
+  ok(JSON.stringify(copy.sections.map((s) => s.fields.map((f) => [f.label, f.value, f.modMode])))
+    === JSON.stringify(original.sections.map((s) => s.fields.map((f) => [f.label, f.value, f.modMode]))),
+    'copie : libelles, valeurs et modes de calcul identiques');
+
+  const file = JSON.parse(JSON.stringify(characterToFile(original)));
+  ok(file.format === 'grimoire-fiche' && !('id' in file.character), 'fichier de fiche sans identifiant interne');
+  const imported = characterFromFile(file);
+  ok(imported.name === 'Aldric' && imported.id !== original.id, 'import : meme fiche, nouvel identifiant');
+  ok(imported.sections.length === original.sections.length, 'import : categories conservees');
+
+  let refused = '';
+  try { characterFromFile({ format: 'grimoire-backup', data: {} }); } catch (err) { refused = err.message; }
+  ok(/pas une fiche/.test(refused), 'import : autre fichier refuse avec un message clair');
+
+  const tricky = characterFromFile({
+    format: 'grimoire-fiche',
+    character: { name: '', sections: [{ name: 'X', fields: [
+      { label: 'Bizarre', type: 'script', value: '<b>' },
+      { label: 'Force', type: 'number', value: 'abc', useAsModifier: true, modMode: 'magie' },
+    ] }] },
+  });
+  const [weird, strength] = tricky.sections[0].fields;
+  ok(tricky.name === 'Personnage importé', 'import : nom vide remplace');
+  ok(weird.type === 'text' && strength.value === '' && strength.modMode === 'raw', 'import : type, valeur et mode inconnus neutralises');
+}
 
 console.log(fail === 0 ? '\nTOUS LES TESTS PASSENT' : `\n${fail} ECHEC(S)`);
 process.exit(fail ? 1 : 0);

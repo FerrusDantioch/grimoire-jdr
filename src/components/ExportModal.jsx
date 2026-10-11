@@ -15,13 +15,28 @@ const FORMATS = [
     icon: 'edit3',
     hint: 'Fichier .txt structuré, modifiable partout.',
   },
+  {
+    id: 'json',
+    label: 'Fiche Grimoire',
+    icon: 'copy',
+    hint: 'Fichier .json à réimporter dans Grimoire ou à envoyer à un autre joueur.',
+  },
 ];
 
 /**
  * Modale de confirmation d'export. `extra` permet d'ajouter des options
  * propres au contexte (par exemple : cette entree seule ou tout le journal).
  */
-export default function ExportModal({ open, onClose, title = 'Exporter', subtitle, extra, onExport, busy = false }) {
+export default function ExportModal({
+  open,
+  onClose,
+  title = 'Exporter',
+  subtitle,
+  extra,
+  onExport,
+  busy = false,
+  formats = ['pdf', 'txt'],
+}) {
   const [format, setFormat] = useState('pdf');
 
   return (
@@ -44,7 +59,7 @@ export default function ExportModal({ open, onClose, title = 'Exporter', subtitl
       {subtitle ? <p className="small muted" style={{ marginTop: 0 }}>{subtitle}</p> : null}
 
       <div className="export-grid" role="radiogroup" aria-label="Format d'export">
-        {FORMATS.map((f) => (
+        {FORMATS.filter((f) => formats.includes(f.id)).map((f) => (
           <button
             key={f.id}
             type="button"

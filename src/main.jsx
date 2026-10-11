@@ -5,6 +5,7 @@ import App from './App.jsx';
 import { AppProvider } from './state/AppContext.jsx';
 import { DiceProvider } from './state/DiceContext.jsx';
 import { PlayerProvider } from './state/PlayerContext.jsx';
+import { AmbianceProvider } from './state/AmbianceContext.jsx';
 import './styles/global.css';
 import './styles/parts.css';
 
@@ -38,9 +39,11 @@ createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AppProvider>
       <PlayerProvider>
-        <DiceProvider>
-          <App />
-        </DiceProvider>
+        <AmbianceProvider>
+          <DiceProvider>
+            <App />
+          </DiceProvider>
+        </AmbianceProvider>
       </PlayerProvider>
     </AppProvider>
   </React.StrictMode>

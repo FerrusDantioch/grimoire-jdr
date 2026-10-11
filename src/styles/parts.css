@@ -375,3 +375,53 @@
   border-radius: 999px;
   transition: width .4s var(--ease);
 }
+
+/* Pastille « ambiances en cours » de la barre du haut : zone tactile
+   confortable, puisqu'elle sert a couper le son en pleine partie. */
+.topbar__ambiance {
+  min-height: 36px;
+  padding: 0 12px;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---------------- choix d'un jet a inserer dans le journal ---------------- */
+.roll-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 12px;
+  text-align: left;
+  font: inherit;
+  color: var(--txt);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+
+.roll-pick:hover { border-color: var(--accent); }
+
+.roll-pick__total {
+  min-width: 40px;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.roll-pick__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Nombre impair de formats d'export : le dernier occupe toute la largeur. */
+.export-choice:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
