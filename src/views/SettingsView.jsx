@@ -218,8 +218,24 @@ export default function SettingsView() {
           dans le stockage local du navigateur. Pensez à exporter une sauvegarde de temps en temps.
         </p>
         <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
-          Application développée par <strong>Ferrus Dantioch</strong> avec l’aide de l’intelligence
-          artificielle. Distribuée sous licence MIT.
+          Cette application a été conçue et développée par Ferrus Dantioch, avec l'aide de Claude (une
+          intelligence artificielle d'Anthropic).
+        </p>
+        {/* Lien discret vers les autres projets : même couleur que le texte autour (juste
+            souligné), ouvert dans un nouvel onglet pour ne pas quitter l'application. */}
+        <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
+          Voir d'autres projets :{' '}
+          <a
+            href="https://ferrusdantioch.github.io/omni-systeme/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'inherit', overflowWrap: 'anywhere' }}
+          >
+            https://ferrusdantioch.github.io/omni-systeme/
+          </a>
+        </p>
+        <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
+          Distribuée sous licence MIT.
         </p>
       </section>
 
