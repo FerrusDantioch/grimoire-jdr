@@ -234,6 +234,13 @@ export default function SettingsView() {
             https://ferrusdantioch.github.io/omni-systeme/
           </a>
         </p>
+        {/* Note d'installation : Chrome Android n'installe qu'une seule
+            application par adresse de site, et toutes les applications de
+            ferrusdantioch.github.io partagent la même. Masquée une fois
+            l'application installée (règle .note-installation de la feuille de style). */}
+        <p className="small muted note-installation" style={{ padding: '0 14px 14px', margin: 0 }}>
+          <strong>Installation sur Android&nbsp;:</strong> si Chrome indique «&nbsp;Cette appli est déjà installée&nbsp;» alors qu'elle ne l'est pas, c'est une limite de Chrome quand une autre application de ce site est déjà installée. Utilisez un autre navigateur (Brave, par exemple), ou choisissez «&nbsp;Créer un raccourci&nbsp;».
+        </p>
         <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
           Distribuée sous licence MIT.
         </p>
