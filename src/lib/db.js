@@ -105,11 +105,19 @@ export async function storageEstimate() {
   }
 }
 
-/** Demande au navigateur de ne pas evincer les donnees en cas de pression disque. */
+/**
+ * Demande au navigateur de ne pas evincer les donnees en cas de pression disque.
+ * Certains navigateurs (Firefox) affichent alors une fenetre d'autorisation :
+ * pour ne jamais en faire surgir une au demarrage, on ne demande que si le
+ * navigateur a deja repondu « accorde » (Chrome, pour une application
+ * installee, sans rien afficher). Sinon, on renonce en silence.
+ */
 export async function requestPersistence() {
-  if (!navigator.storage?.persist) return false;
+  if (!navigator.storage?.persist || !navigator.permissions) return false;
   try {
     if (await navigator.storage.persisted()) return true;
+    const etat = await navigator.permissions.query({ name: 'persistent-storage' });
+    if (etat.state !== 'granted') return false;
     return await navigator.storage.persist();
   } catch {
     return false;
