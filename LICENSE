@@ -1,21 +1,155 @@
-MIT License
+Required Notice: Copyright (c) 2026 Ferrus Dantioch
 
-Copyright (c) 2026 FerrusDantioch
+# PolyForm Noncommercial License 1.0.0
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## Acceptance
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+In order to get any license under these terms, you must agree to them as both strict obligations and conditions to all your licenses.
+
+## Copyright License
+
+The licensor grants you a copyright license for the software to do everything you might do with the software that would otherwise infringe the licensor's copyright in it for any permitted purpose.  However, you may only distribute the software according to [Distribution License](#distribution-license) and make changes or new works based on the software according to [Changes and New Works License](#changes-and-new-works-license).
+
+## Distribution License
+
+The licensor grants you an additional copyright license to distribute copies of the software.  Your license to distribute covers distributing the software with changes and new works permitted by [Changes and New Works License](#changes-and-new-works-license).
+
+## Notices
+
+You must ensure that anyone who gets a copy of any part of the software from you also gets a copy of these terms or the URL for them above, as well as copies of any plain-text lines beginning with `Required Notice:` that the licensor provided with the software.  For example:
+
+> Required Notice: Copyright Yoyodyne, Inc. (http://example.com)
+
+## Changes and New Works License
+
+The licensor grants you an additional copyright license to make changes and new works based on the software for any permitted purpose.
+
+## Patent License
+
+The licensor grants you a patent license for the software that covers patent claims the licensor can license, or becomes able to license, that you would infringe by using the software.
+
+## Noncommercial Purposes
+
+Any noncommercial purpose is a permitted purpose.
+
+## Personal Uses
+
+Personal use for research, experiment, and testing for the benefit of public knowledge, personal study, private entertainment, hobby projects, amateur pursuits, or religious observance, without any anticipated commercial application, is use for a permitted purpose.
+
+## Noncommercial Organizations
+
+Use by any charitable organization, educational institution, public research organization, public safety or health organization, environmental protection organization, or government institution is use for a permitted purpose regardless of the source of funding or obligations resulting from the funding.
+
+## Fair Use
+
+You may have "fair use" rights for the software under the law. These terms do not limit them.
+
+## No Other Rights
+
+These terms do not allow you to sublicense or transfer any of your licenses to anyone else, or prevent the licensor from granting licenses to anyone else.  These terms do not imply any other licenses.
+
+## Patent Defense
+
+If you make any written claim that the software infringes or contributes to infringement of any patent, your patent license for the software granted under these terms ends immediately. If your company makes such a claim, your patent license ends immediately for work on behalf of your company.
+
+## Violations
+
+The first time you are notified in writing that you have violated any of these terms, or done anything with the software not covered by your licenses, your licenses can nonetheless continue if you come into full compliance with these terms, and take practical steps to correct past violations, within 32 days of receiving notice.  Otherwise, all your licenses end immediately.
+
+## No Liability
+
+***As far as the law allows, the software comes as is, without any warranty or condition, and the licensor will not be liable to you for any damages arising out of these terms or the use or nature of the software, under any kind of legal claim.***
+
+## Definitions
+
+The **licensor** is the individual or entity offering these terms, and the **software** is the software the licensor makes available under these terms.
+
+**You** refers to the individual or entity agreeing to these terms.
+
+**Your company** is any legal entity, sole proprietorship, or other kind of organization that you work for, plus all organizations that have control over, are under the control of, or are under common control with that organization.  **Control** means ownership of substantially all the assets of an entity, or the power to direct its management and policies by vote, contract, or otherwise.  Control can be direct or indirect.
+
+**Your licenses** are all the licenses granted to you for the software under these terms.
+
+**Use** means anything you do with the software requiring one of your licenses.
+
+---
+
+# Traduction française non officielle, à titre indicatif
+
+Cette traduction est fournie pour faciliter la lecture et n'a aucune valeur juridique officielle. En cas de divergence, la version anglaise fait foi.
+
+Licence PolyForm Noncommercial 1.0.0
+
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
+
+## Acceptation (Acceptance)
+
+Pour obtenir une quelconque licence en vertu des présentes conditions, vous devez les accepter à la fois comme des obligations strictes et comme des conditions de toutes vos licences.
+
+## Licence de droit d'auteur (Copyright License)
+
+Le concédant vous accorde une licence de droit d'auteur sur le logiciel vous permettant de faire, à toute fin autorisée, tout ce que vous pourriez faire avec le logiciel et qui, autrement, porterait atteinte au droit d'auteur que le concédant détient sur celui-ci. Toutefois, vous ne pouvez distribuer le logiciel que conformément à la section « Licence de distribution », et vous ne pouvez apporter des modifications au logiciel ou créer de nouvelles œuvres fondées sur celui-ci que conformément à la section « Licence de modifications et de nouvelles œuvres ».
+
+## Licence de distribution (Distribution License)
+
+Le concédant vous accorde une licence de droit d'auteur supplémentaire pour distribuer des copies du logiciel. Votre licence de distribution couvre la distribution du logiciel accompagné des modifications et des nouvelles œuvres autorisées par la section « Licence de modifications et de nouvelles œuvres ».
+
+## Mentions obligatoires (Notices)
+
+Vous devez veiller à ce que toute personne qui obtient de vous une copie de tout ou partie du logiciel obtienne également une copie des présentes conditions ou leur adresse URL indiquée ci-dessus, ainsi que des copies de toutes les lignes en texte brut commençant par `Required Notice:` que le concédant a fournies avec le logiciel. Par exemple :
+
+> Required Notice: Copyright Yoyodyne, Inc. (http://example.com)
+
+## Licence de modifications et de nouvelles œuvres (Changes and New Works License)
+
+Le concédant vous accorde une licence de droit d'auteur supplémentaire pour apporter des modifications au logiciel et créer de nouvelles œuvres fondées sur celui-ci, à toute fin autorisée.
+
+## Licence de brevet (Patent License)
+
+Le concédant vous accorde une licence de brevet pour le logiciel, qui couvre les revendications de brevet que le concédant peut concéder sous licence, ou qu'il devient en mesure de concéder sous licence, et auxquelles vous porteriez atteinte en utilisant le logiciel.
+
+## Fins non commerciales (Noncommercial Purposes)
+
+Toute fin non commerciale est une fin autorisée.
+
+## Usages personnels (Personal Uses)
+
+L'usage personnel à des fins de recherche, d'expérimentation et de test au bénéfice de la connaissance publique, d'étude personnelle, de divertissement privé, de projets de loisir, d'activités d'amateur ou de pratique religieuse, sans aucune application commerciale envisagée, est un usage à une fin autorisée.
+
+## Organisations non commerciales (Noncommercial Organizations)
+
+L'usage par tout organisme caritatif, établissement d'enseignement, organisme public de recherche, organisme de sécurité publique ou de santé, organisme de protection de l'environnement ou institution gouvernementale est un usage à une fin autorisée, quels que soient la source du financement ou les obligations découlant de ce financement.
+
+## Usage loyal (Fair Use)
+
+Il se peut que la loi vous accorde des droits d'« usage loyal » (« fair use ») sur le logiciel. Les présentes conditions ne les limitent pas.
+
+## Aucun autre droit (No Other Rights)
+
+Les présentes conditions ne vous permettent pas de concéder en sous-licence ni de transférer l'une quelconque de vos licences à qui que ce soit, et elles n'empêchent pas le concédant d'accorder des licences à quiconque d'autre. Les présentes conditions n'impliquent aucune autre licence.
+
+## Défense en matière de brevets (Patent Defense)
+
+Si vous affirmez par écrit, de quelque manière que ce soit, que le logiciel porte atteinte à un brevet ou contribue à une atteinte à un brevet, votre licence de brevet pour le logiciel accordée en vertu des présentes conditions prend fin immédiatement. Si votre entreprise formule une telle affirmation, votre licence de brevet prend fin immédiatement pour le travail effectué pour le compte de votre entreprise.
+
+## Violations (Violations)
+
+La première fois qu'une notification écrite vous informe que vous avez enfreint l'une des présentes conditions, ou que vous avez fait avec le logiciel quelque chose qui n'est pas couvert par vos licences, vos licences peuvent néanmoins se poursuivre si vous vous mettez en pleine conformité avec les présentes conditions et prenez des mesures concrètes pour corriger les violations passées, dans les 32 jours suivant la réception de cette notification. À défaut, toutes vos licences prennent fin immédiatement.
+
+## Absence de responsabilité (No Liability)
+
+***Dans toute la mesure permise par la loi, le logiciel est fourni « tel quel », sans aucune garantie ni condition, et le concédant ne sera pas responsable envers vous de quelque dommage que ce soit découlant des présentes conditions ou de l'utilisation ou de la nature du logiciel, quel que soit le fondement juridique de la réclamation.***
+
+## Définitions (Definitions)
+
+Le **concédant** est la personne physique ou l'entité qui propose les présentes conditions, et le **logiciel** est le logiciel que le concédant met à disposition selon les présentes conditions.
+
+**Vous** désigne la personne physique ou l'entité qui accepte les présentes conditions.
+
+**Votre entreprise** désigne toute entité juridique, entreprise individuelle ou autre type d'organisation pour laquelle vous travaillez, ainsi que toutes les organisations qui contrôlent cette organisation, qui sont contrôlées par elle ou qui sont placées sous un contrôle commun avec elle. Le **contrôle** désigne la détention de la quasi-totalité des actifs d'une entité, ou le pouvoir d'en diriger la gestion et les politiques par un vote, un contrat ou de toute autre manière. Le contrôle peut être direct ou indirect.
+
+**Vos licences** désigne l'ensemble des licences qui vous sont accordées pour le logiciel en vertu des présentes conditions.
+
+**Usage** désigne tout ce que vous faites avec le logiciel et qui nécessite l'une de vos licences.
