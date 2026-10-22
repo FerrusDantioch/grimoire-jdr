@@ -242,7 +242,7 @@ export default function SettingsView() {
           <strong>Installation sur Android&nbsp;:</strong> si Chrome indique «&nbsp;Cette appli est déjà installée&nbsp;» alors qu'elle ne l'est pas, c'est une limite de Chrome quand une autre application de ce site est déjà installée. Utilisez un autre navigateur (Brave, par exemple), ou choisissez «&nbsp;Créer un raccourci&nbsp;».
         </p>
         <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
-          Distribuée sous licence MIT.
+          Distribuée sous licence PolyForm Noncommercial 1.0.0 (usage commercial interdit).
         </p>
       </section>
 
