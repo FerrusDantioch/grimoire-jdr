@@ -234,6 +234,17 @@ export default function SettingsView() {
             https://ferrusdantioch.github.io/omni-systeme/
           </a>
         </p>
+        {/* Retours : une adresse-alias (Proton) créée pour ça. Le lien ouvre seulement
+            l'application de messagerie, adresse et sujet déjà remplis : rien ne part tout seul. */}
+        <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
+          Une idée, une remarque, un souci ? Vos retours sont les bienvenus :{' '}
+          <a
+            href="mailto:omni-systeme.choking513@passmail.net?subject=Retour%20sur%20Grimoire"
+            style={{ color: 'inherit', overflowWrap: 'anywhere' }}
+          >
+            omni-systeme.choking513@passmail.net
+          </a>
+        </p>
         {/* Note d'installation : Chrome Android n'installe qu'une seule
             application par adresse de site, et toutes les applications de
             ferrusdantioch.github.io partagent la même. Masquée une fois
