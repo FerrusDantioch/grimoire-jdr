@@ -1,10 +1,10 @@
-# Grimoire — Compagnon JDR
+# Omni-Grimoire — Compagnon JDR
 
 Application web progressive (PWA) pour le jeu de rôle solo et multi-joueurs.
 Installable sur mobile et ordinateur sans passer par les stores, fonctionne
 entièrement hors ligne, et ne transmet aucune donnée à un serveur.
 
-**→ [Ouvrir l'application](https://ferrusdantioch.github.io/grimoire-jdr/)**
+**→ [Ouvrir l'application](https://ferrusdantioch.github.io/omni-grimoire/)**
 
 Ouvrez ce lien sur téléphone ou sur ordinateur, puis installez l'application
 depuis le bouton **Installer** de la barre du haut. Elle fonctionne ensuite sans
@@ -13,7 +13,7 @@ le développement.
 
 ## Démarrer
 
-**Le plus simple : double-cliquer sur `Lancer Grimoire.cmd`.** Il installe les
+**Le plus simple : double-cliquer sur `Lancer Omni-Grimoire.cmd`.** Il installe les
 dépendances au premier lancement, compile l'application et ouvre le navigateur.
 Laissez la fenêtre noire ouverte pendant l'utilisation ; la fermer arrête le serveur.
 
@@ -47,16 +47,16 @@ pas fonctionner dans ce contexte.
   d'origine sur `file://`, et le service worker, la persistance du stockage et
   l'invite d'installation exigent tous une origine `http://localhost` ou `https://`.
 
-L'application doit donc être **servie**, ce que fait `Lancer Grimoire.cmd`.
+L'application doit donc être **servie**, ce que fait `Lancer Omni-Grimoire.cmd`.
 
 ### L'installer comme une vraie application
 
 Une fois la page ouverte sur http://localhost:4173, le bouton **Installer** de la
 barre du haut (ou l'icône d'installation dans la barre d'adresse de Chrome/Edge)
-crée un raccourci qui ouvre Grimoire dans sa propre fenêtre, sans barre de
+crée un raccourci qui ouvre Omni-Grimoire dans sa propre fenêtre, sans barre de
 navigateur. Il faut malgré tout que le serveur tourne.
 
-C'est exactement ce que fait la version en ligne : **https://ferrusdantioch.github.io/grimoire-jdr/**.
+C'est exactement ce que fait la version en ligne : **https://ferrusdantioch.github.io/omni-grimoire/**.
 En HTTPS, le service worker met tout en cache et l'application fonctionne ensuite
 sans réseau et sans rien lancer localement — c'est la façon recommandée de s'en servir.
 
@@ -66,7 +66,7 @@ Chaque `push` sur `main` déclenche `.github/workflows/deploy.yml` : installatio
 tests, build et publication sur GitHub Pages. Le build de déploiement reçoit la
 variable `GITHUB_PAGES` avec le nom du dépôt, ce qui bascule `base`, `start_url`
 et `scope` sur `/<dépôt>/` ; sans cette variable (donc en local), tout reste à la
-racine et `Lancer Grimoire.cmd` continue de fonctionner.
+racine et `Lancer Omni-Grimoire.cmd` continue de fonctionner.
 
 ## Fonctionnalités
 
@@ -82,7 +82,7 @@ Sauvegarde automatique dans IndexedDB, 600 ms après la dernière frappe, et
 immédiate à la fermeture de la fiche.
 
 **Dupliquer, partager** — le bouton de copie de l'éditeur duplique la fiche
-(« Aldric (copie) ») et l'ouvre aussitôt. L'export au format **Fiche Grimoire**
+(« Aldric (copie) ») et l'ouvre aussitôt. L'export au format **Fiche Omni-Grimoire**
 produit un petit fichier `.json` à envoyer au MJ ou à un autre joueur, qui le
 réimporte avec le bouton **Importer** de l'onglet Fiches. Une fiche importée
 reçoit toujours de nouveaux identifiants : elle n'écrase jamais une fiche
@@ -174,7 +174,7 @@ Modale de confirmation avec choix du format :
   champs sur deux colonnes pour les fiches ; titres, listes, citations et pied de
   page numéroté pour le journal.
 - **Texte** — `.txt` structuré, lisible et modifiable partout.
-- **Fiche Grimoire** (fiches uniquement) — `.json` réimportable dans Grimoire.
+- **Fiche Omni-Grimoire** (fiches uniquement) — `.json` réimportable dans Omni-Grimoire.
 
 Les réglages proposent en plus deux sauvegardes en JSON, et leur restauration :
 

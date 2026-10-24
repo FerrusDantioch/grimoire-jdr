@@ -17,9 +17,9 @@ const FORMATS = [
   },
   {
     id: 'json',
-    label: 'Fiche Grimoire',
+    label: 'Fiche Omni-Grimoire',
     icon: 'copy',
-    hint: 'Fichier .json à réimporter dans Grimoire ou à envoyer à un autre joueur.',
+    hint: 'Fichier .json à réimporter dans Omni-Grimoire ou à envoyer à un autre joueur.',
   },
 ];
 

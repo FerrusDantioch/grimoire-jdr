@@ -30,7 +30,7 @@ export default function CharactersView({ openId, setOpenId }) {
     toast('Fiche créée.', 'ok');
   };
 
-  /** Importe une fiche exportee au format « Fiche Grimoire » (.json). */
+  /** Importe une fiche exportee au format « Fiche Omni-Grimoire » (.json). */
   const importCharacter = async () => {
     const [file] = await pickFiles({ accept: 'application/json,.json' });
     if (!file) return;

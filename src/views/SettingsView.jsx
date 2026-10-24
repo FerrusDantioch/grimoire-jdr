@@ -47,7 +47,7 @@ export default function SettingsView() {
       const dump = await db.exportBackup({ includeFiles });
       const blob = new Blob([JSON.stringify(dump)], { type: 'application/json' });
       const stamp = new Date().toISOString().slice(0, 10);
-      downloadBlob(blob, `grimoire-sauvegarde${includeFiles ? '' : '-legere'}-${stamp}.json`);
+      downloadBlob(blob, `omni-grimoire-sauvegarde${includeFiles ? '' : '-legere'}-${stamp}.json`);
       toast(`Sauvegarde ${includeFiles ? 'complète' : 'légère'} téléchargée (${formatBytes(blob.size)}).`, 'ok');
     } catch (err) {
       console.error(err);
@@ -213,7 +213,7 @@ export default function SettingsView() {
       <section className="card setting-group">
         <h3 className="setting-group__title">À propos</h3>
         <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
-          <strong>Grimoire</strong> — compagnon de jeu de rôle fonctionnant entièrement sur votre appareil.
+          <strong>Omni-Grimoire</strong> — compagnon de jeu de rôle fonctionnant entièrement sur votre appareil.
           Aucune donnée n’est envoyée sur un serveur : fiches, journal, documents et musiques restent
           dans le stockage local du navigateur. Pensez à exporter une sauvegarde de temps en temps.
         </p>
@@ -239,7 +239,7 @@ export default function SettingsView() {
         <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
           Une idée, une remarque, un souci ? Vos retours sont les bienvenus :{' '}
           <a
-            href="mailto:omni-systeme.choking513@passmail.net?subject=Retour%20sur%20Grimoire"
+            href="mailto:omni-systeme.choking513@passmail.net?subject=Retour%20sur%20Omni-Grimoire"
             style={{ color: 'inherit', overflowWrap: 'anywhere' }}
           >
             omni-systeme.choking513@passmail.net

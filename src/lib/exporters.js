@@ -19,7 +19,7 @@ const PANEL = [247, 244, 249];
 async function createDoc(title) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
-  doc.setProperties({ title, creator: 'Grimoire — Compagnon JDR' });
+  doc.setProperties({ title, creator: 'Omni-Grimoire — Compagnon JDR' });
   return doc;
 }
 
@@ -409,7 +409,7 @@ export async function exportCharacter(character, format) {
     const doc = await characterToPDF(character);
     downloadBlob(doc.output('blob'), `${base}.pdf`);
   } else if (format === 'json') {
-    // Fiche reimportable dans Grimoire (bouton « Importer » des Personnages).
+    // Fiche reimportable dans Omni-Grimoire (bouton « Importer » des Personnages).
     downloadText(JSON.stringify(characterToFile(character), null, 2), `${base}.json`, 'application/json');
   } else {
     downloadText(characterToText(character), `${base}.txt`);

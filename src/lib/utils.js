@@ -106,7 +106,7 @@ export function formatDuration(seconds) {
 }
 
 /** Nom de fichier sans caracteres interdits. */
-export function safeFilename(name, fallback = 'grimoire') {
+export function safeFilename(name, fallback = 'omni-grimoire') {
   const clean = String(name ?? '')
     .normalize('NFD') // separe les accents, retires par le filtre ci-dessous
     .replace(/[^a-zA-Z0-9 _-]/g, '')

@@ -77,7 +77,7 @@ export default function App() {
       <header className="topbar">
         <span className="topbar__brand">
           <Icon name="dice" size={20} style={{ color: 'var(--accent)' }} />
-          <span className="topbar__title">Grimoire</span>
+          <span className="topbar__title">Omni-Grimoire</span>
         </span>
 
         {activeCharacter && (

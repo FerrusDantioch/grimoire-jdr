@@ -82,11 +82,11 @@ export function characterToFile(character) {
 
 /**
  * Lit le contenu d'un fichier de fiche (deja passe par JSON.parse).
- * @throws {Error} message lisible si le fichier n'est pas une fiche Grimoire
+ * @throws {Error} message lisible si le fichier n'est pas une fiche Omni-Grimoire
  */
 export function characterFromFile(data) {
   if (!data || data.format !== CHARACTER_FILE_FORMAT || !data.character || typeof data.character !== 'object') {
-    throw new Error("Ce fichier n'est pas une fiche Grimoire.");
+    throw new Error("Ce fichier n'est pas une fiche Omni-Grimoire.");
   }
   if (!Array.isArray(data.character.sections)) {
     throw new Error('Fiche illisible : aucune catégorie trouvée.');

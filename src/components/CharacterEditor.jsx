@@ -345,7 +345,7 @@ export default function CharacterEditor({ character, onBack, onOpen }) {
     try {
       persist.flush(draftRef.current);
       await exportCharacter(draftRef.current, format);
-      toast(format === 'json' ? 'Fiche exportée (fichier Grimoire).' : `Fiche exportée en ${format.toUpperCase()}.`, 'ok');
+      toast(format === 'json' ? 'Fiche exportée (fichier Omni-Grimoire).' : `Fiche exportée en ${format.toUpperCase()}.`, 'ok');
       setExportOpen(false);
     } catch (err) {
       console.error(err);

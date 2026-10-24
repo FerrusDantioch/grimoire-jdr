@@ -1,4 +1,4 @@
-# Grimoire — Compagnon JDR — notes pour Claude
+# Omni-Grimoire — notes pour Claude
 
 PWA compagnon de jeu de rôle en **React + Vite** : fiches à structure libre,
 lanceur de dés, journal, visionneuse PDF, lecteur audio. Contrairement aux PWA
@@ -12,7 +12,7 @@ npm start        # build puis aperçu sur http://localhost:4173
 npm test         # scripts/test-core.mjs
 ```
 
-Le fichier `Lancer Grimoire.cmd` fait tout cela d'un double-clic sous Windows
+Le fichier `Lancer Omni-Grimoire.cmd` fait tout cela d'un double-clic sous Windows
 (installe les dépendances au premier lancement, compile, puis ouvre le
 navigateur).
 
@@ -43,11 +43,11 @@ l'installation de l'application.
 ```
 
 `cmd.exe` interprète mal un fichier `.cmd` n'ayant que des LF, en particulier les
-blocs entre parenthèses (`if errorlevel 1 ( ... )`) — et `Lancer Grimoire.cmd`
+blocs entre parenthèses (`if errorlevel 1 ( ... )`) — et `Lancer Omni-Grimoire.cmd`
 en contient plusieurs. **Ne pas retirer cette règle.**
 
 ## À savoir
 
 - Déploiement automatique par GitHub Actions (`.github/workflows/deploy.yml`) à
-  chaque envoi sur `main` → https://ferrusdantioch.github.io/grimoire-jdr/
+  chaque envoi sur `main` → https://ferrusdantioch.github.io/omni-grimoire/
 - Code et commentaires en français : conserver ce niveau d'explication.

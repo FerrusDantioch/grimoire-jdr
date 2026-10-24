@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
-title Grimoire - Compagnon JDR
+title Omni-Grimoire - Compagnon JDR
 cd /d "%~dp0"
 
 echo.
-echo   GRIMOIRE - Compagnon JDR
+echo   OMNI-GRIMOIRE - Compagnon JDR
 echo   ========================
 echo.
 

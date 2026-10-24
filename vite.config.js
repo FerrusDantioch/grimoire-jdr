@@ -17,8 +17,8 @@ export default defineConfig({
       // par `globPatterns`, et les lister deux fois les mettrait en cache en double.
       manifest: {
         id: base,
-        name: 'Grimoire — Compagnon JDR',
-        short_name: 'Grimoire',
+        name: 'Omni-Grimoire — Compagnon JDR',
+        short_name: 'Omni-Grimoire',
         description:
           "Fiches de personnage, journal d'aventure, visionneuse PDF, lanceur de dés et lecteur de musique. Fonctionne hors ligne.",
         lang: 'fr',

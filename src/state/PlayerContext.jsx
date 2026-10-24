@@ -273,7 +273,7 @@ export function PlayerProvider({ children }) {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: current.name,
       artist: queueLabel,
-      album: 'Grimoire — Compagnon JDR',
+      album: 'Omni-Grimoire — Compagnon JDR',
       // BASE_URL, et non un chemin absolu : l'application peut etre servie
       // depuis un sous-repertoire (GitHub Pages).
       artwork: [
