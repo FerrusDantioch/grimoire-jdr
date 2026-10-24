@@ -6,6 +6,14 @@ import { useInstallPrompt, useOnline } from '../lib/usePwa.js';
 import Icon from '../components/Icon.jsx';
 import { ConfirmDialog } from '../components/Modal.jsx';
 
+// Thèmes proposés : l'identifiant correspond à un bloc [data-theme="..."] de
+// styles/global.css.
+const THEMES = [
+  { id: 'grimoire', label: 'Grimoire' },
+  { id: 'parchemin', label: 'Parchemin' },
+  { id: 'omni-systeme', label: 'Omni-système' },
+];
+
 function Row({ icon, title, description, children }) {
   return (
     <div className="setting-row">
@@ -103,14 +111,26 @@ export default function SettingsView() {
 
       <section className="card setting-group">
         <h3 className="setting-group__title">Apparence</h3>
-        <Row icon={theme === 'grimoire' ? 'moon' : 'sun'} title="Thème" description="Sombre pour jouer le soir, clair pour le grand jour.">
-          <div className="segmented segmented--inline">
-            <button type="button" className={theme === 'grimoire' ? 'is-on' : ''} onClick={() => changeTheme('grimoire')}>
-              Grimoire
-            </button>
-            <button type="button" className={theme === 'parchemin' ? 'is-on' : ''} onClick={() => changeTheme('parchemin')}>
-              Parchemin
-            </button>
+        <Row
+          icon={theme === 'parchemin' ? 'sun' : 'moon'}
+          title="Thème"
+          description="Sombre pour jouer le soir, clair pour le grand jour, ou aux couleurs de l’Omni-système."
+        >
+          <div className="segmented segmented--inline theme-picker">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={theme === t.id ? 'is-on' : ''}
+                aria-pressed={theme === t.id}
+                onClick={() => changeTheme(t.id)}
+              >
+                {/* Aperçu : la pastille porte le data-theme du bouton, donc les
+                    couleurs de ce thème-là, quel que soit le thème actif. */}
+                <span className="theme-swatch" data-theme={t.id} aria-hidden="true" />
+                {t.label}
+              </button>
+            ))}
           </div>
         </Row>
       </section>

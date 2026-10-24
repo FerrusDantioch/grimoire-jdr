@@ -12,6 +12,13 @@ export function useApp() {
 
 const byUpdated = (a, b) => (b.updatedAt || 0) - (a.updatedAt || 0);
 
+// Couleur de la barre du navigateur (balise theme-color) pour chaque theme.
+const THEME_COLORS = {
+  grimoire: '#141019',
+  parchemin: '#f3ead8',
+  'omni-systeme': '#14111d',
+};
+
 export function AppProvider({ children }) {
   const [ready, setReady] = useState(false);
   const [characters, setCharacters] = useState([]);
@@ -77,7 +84,7 @@ export function AppProvider({ children }) {
     // index.html declare deux balises (systeme sombre / systeme clair) : il faut
     // les mettre a jour toutes les deux, sinon un telephone en mode clair garde
     // une barre beige au-dessus du theme sombre de l'application.
-    const color = theme === 'grimoire' ? '#141019' : '#f3ead8';
+    const color = THEME_COLORS[theme] || THEME_COLORS.grimoire;
     document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.setAttribute('content', color));
   }, [theme]);
 
