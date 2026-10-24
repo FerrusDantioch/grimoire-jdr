@@ -21,6 +21,8 @@
 .dice-fab:hover { transform: translateY(-2px); }
 .dice-fab:active { transform: scale(.94); }
 .dice-fab--open { background: linear-gradient(160deg, var(--accent), #c1913f); color: var(--accent-ink); }
+/* Theme Omni-systeme : le bas du degrade passe de l'or a un violet plus profond. */
+[data-theme="omni-systeme"] .dice-fab--open { background: linear-gradient(160deg, var(--accent), #8a5cf5); }
 
 .dice-fab__icon { transition: transform .5s var(--ease); }
 .dice-fab--rolling .dice-fab__icon { animation: dice-tumble .62s var(--ease); }

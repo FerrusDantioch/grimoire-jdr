@@ -330,6 +330,43 @@
   min-width: 190px;
 }
 
+/* Choix du theme : la rangee passe sous le texte et prend toute la largeur,
+   en colonnes egales ; sur un ecran etroit, « Omni-systeme » se coupe au tiret
+   au lieu de deborder. */
+.setting-row__action:has(> .theme-picker) { flex: 1 1 100%; }
+.theme-picker { grid-auto-columns: minmax(0, 1fr); }
+
+/* Chaque bouton montre un apercu (pastille) au-dessus du nom. */
+.theme-picker button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Mini-ecran : fond du theme, barre d'accent et ligne de texte. Les variables
+   sont celles du theme indique par l'attribut data-theme de la pastille. */
+.theme-swatch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 38px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.theme-swatch::before,
+.theme-swatch::after {
+  content: "";
+  border-radius: 2px;
+}
+
+.theme-swatch::before { width: 8px; align-self: stretch; background: var(--accent); }
+.theme-swatch::after { flex: 1; height: 4px; background: var(--txt); }
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));

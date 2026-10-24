@@ -120,13 +120,15 @@ export default function App() {
           </button>
         )}
 
+        {/* Bascule rapide clair / sombre : les deux thèmes sombres (Grimoire et
+            Omni-système) passent au clair, le clair revient à Grimoire. */}
         <button
           type="button"
           className="btn btn--ghost btn--icon"
-          onClick={() => changeTheme(theme === 'grimoire' ? 'parchemin' : 'grimoire')}
-          aria-label={theme === 'grimoire' ? 'Passer au thème clair' : 'Passer au thème sombre'}
+          onClick={() => changeTheme(theme === 'parchemin' ? 'grimoire' : 'parchemin')}
+          aria-label={theme === 'parchemin' ? 'Passer au thème sombre' : 'Passer au thème clair'}
         >
-          <Icon name={theme === 'grimoire' ? 'sun' : 'moon'} />
+          <Icon name={theme === 'parchemin' ? 'moon' : 'sun'} />
         </button>
       </header>
 

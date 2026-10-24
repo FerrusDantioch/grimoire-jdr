@@ -1,6 +1,7 @@
 /* =========================================================
    Omni-Grimoire — design system
-   Mobile-first. Deux themes : "grimoire" (sombre) / "parchemin" (clair)
+   Mobile-first. Trois themes : "grimoire" (sombre) / "parchemin" (clair)
+   / "omni-systeme" (sombre, violet)
    ========================================================= */
 
 :root {
@@ -64,6 +65,27 @@
   color-scheme: light;
 }
 
+/* Theme sombre aux couleurs de l'Omni-systeme : fonds « nuit » et violet du
+   logo (le d20 lumineux), repris des variables du site de l'Omni-systeme. */
+[data-theme="omni-systeme"] {
+  --bg: #14111d;
+  --bg-1: #1d1929;
+  --bg-2: #252035;
+  --bg-3: #2d2640;
+  --line: #3b3356;
+  --line-soft: #2b2540;
+  --txt: #e9e4f2;
+  --txt-2: #a59cbb;
+  --txt-3: #938cae;
+  --accent: #a777ff;
+  --accent-ink: #1a0f33;
+  /* Haut du degrade des boutons principaux : le halo du logo au lieu de l'or. */
+  --gold-soft: #d6c2ff;
+  --shadow: 0 10px 34px rgba(0, 0, 0, .55);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, .35);
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -97,6 +119,14 @@ body {
   background-image:
     radial-gradient(900px 500px at 10% -6%, rgba(154, 107, 31, .10), transparent 60%),
     radial-gradient(800px 460px at 95% 4%, rgba(120, 90, 40, .07), transparent 62%);
+  background-attachment: fixed;
+}
+
+/* Lueurs violettes, comme l'anneau lumineux autour du d20 du logo. */
+[data-theme="omni-systeme"] body {
+  background-image:
+    radial-gradient(1100px 600px at 12% -8%, rgba(167, 119, 255, .18), transparent 60%),
+    radial-gradient(900px 520px at 92% 6%, rgba(80, 16, 176, .16), transparent 62%);
   background-attachment: fixed;
 }
 

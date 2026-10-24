@@ -232,7 +232,8 @@ Le service worker n'est actif que sur le build de production servi en HTTP(S) :
 
 Conception mobile d'abord. Barre d'onglets en bas sous 900 px, rail latéral
 au-delà ; zones tactiles de 44 px minimum, marges de sécurité (encoches) prises
-en compte. Deux thèmes, **grimoire** (sombre) et **parchemin** (clair).
+en compte. Trois thèmes, **grimoire** (sombre), **parchemin** (clair) et
+**omni-système** (sombre, aux couleurs violettes du logo de l'Omni-système).
 
 ## Vérifications effectuées
 
