@@ -48,6 +48,11 @@ en contient plusieurs. **Ne pas retirer cette règle.**
 
 ## À savoir
 
+- **Licences tierces** : `public/licences-tierces.txt` rassemble les textes de
+  licence des bibliothèques publiées. Il est refait par
+  `scripts/licences-tierces.mjs`, lancé automatiquement avant chaque
+  `npm run build` (script `prebuild`). Après un changement de dépendances,
+  committer le fichier refait.
 - Déploiement automatique par GitHub Actions (`.github/workflows/deploy.yml`) à
   chaque envoi sur `main` → https://ferrusdantioch.github.io/omni-grimoire/
 - Code et commentaires en français : conserver ce niveau d'explication.

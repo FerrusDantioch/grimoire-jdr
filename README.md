@@ -261,17 +261,19 @@ en compte. Deux thèmes, **grimoire** (sombre) et **parchemin** (clair).
 
 ## Licence
 
-Distribué sous licence **[Creative Commons BY-NC-ND 4.0](LICENSE)**
-(Attribution - Utilisation non commerciale - Pas d'Œuvre dérivée), avec le
-texte officiel en anglais et sa traduction française officielle.
+**© 2026 Ferrus Dantioch — Creative Commons BY-NC-ND 4.0**
+([résumé de la licence en français](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr))
 
-Vous pouvez utiliser ce logiciel et en partager des copies identiques,
-gratuitement, à condition de citer l'auteur (Ferrus Dantioch) et d'indiquer la
-licence. Il est interdit de le vendre ou d'en tirer un profit commercial, et
-de diffuser une version modifiée. Le logiciel est fourni « en l'état », sans
-aucune garantie.
+En clair : le partage est autorisé, à l'identique et en citant l'auteur ;
+l'usage commercial est interdit ; la modification et les œuvres dérivées
+sont interdites. Le logiciel est fourni « en l'état », sans aucune garantie.
+
+Texte complet dans le fichier [LICENSE](LICENSE) : le texte officiel en
+anglais, suivi de la traduction française officielle publiée par Creative
+Commons.
 
 Les bibliothèques tierces utilisées par ce projet (voir `package.json`)
-restent soumises à leurs propres licences.
-
-© 2026 FerrusDantioch
+restent soumises à leurs propres licences. Leurs textes de licence sont
+rassemblés dans [`public/licences-tierces.txt`](public/licences-tierces.txt),
+publié avec l'application et refait automatiquement à chaque construction
+(commande `npm run licences`, script `scripts/licences-tierces.mjs`).

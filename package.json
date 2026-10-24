@@ -2,16 +2,19 @@
   "name": "omni-grimoire",
   "private": true,
   "version": "1.0.0",
+  "license": "CC-BY-NC-ND-4.0",
   "type": "module",
   "description": "PWA tout-en-un pour le jeu de role solo et multi-joueurs",
   "scripts": {
     "start": "vite build && vite preview --port 4173 --open",
     "dev": "vite --open",
+    "prebuild": "node scripts/licences-tierces.mjs",
     "build": "vite build",
     "preview": "vite preview --port 4173 --open",
     "serve": "vite preview --port 4173",
     "test": "node scripts/test-core.mjs",
-    "icons": "node scripts/gen-icons.mjs"
+    "icons": "node scripts/gen-icons.mjs",
+    "licences": "node scripts/licences-tierces.mjs"
   },
   "dependencies": {
     "idb": "^8.0.0",

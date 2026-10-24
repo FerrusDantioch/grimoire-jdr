@@ -252,8 +252,18 @@ export default function SettingsView() {
         <p className="small muted note-installation" style={{ padding: '0 14px 14px', margin: 0 }}>
           <strong>Installation sur Android&nbsp;:</strong> si Chrome indique «&nbsp;Cette appli est déjà installée&nbsp;» alors qu'elle ne l'est pas, c'est une limite de Chrome quand une autre application de ce site est déjà installée. Utilisez un autre navigateur (Brave, par exemple), ou choisissez «&nbsp;Créer un raccourci&nbsp;».
         </p>
+        {/* Licence du code : texte complet dans le fichier LICENSE du dépôt. */}
         <p className="small muted" style={{ padding: '0 14px 14px', margin: 0 }}>
-          Distribuée sous licence Creative Commons BY-NC-ND 4.0 : partage libre, sans modification ni usage commercial.
+          © 2026 Ferrus Dantioch —{' '}
+          <a
+            href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'inherit', overflowWrap: 'anywhere' }}
+          >
+            Creative Commons BY-NC-ND 4.0
+          </a>{' '}
+          : partage autorisé en citant l'auteur, sans usage commercial ni modification.
         </p>
       </section>
 
